@@ -109,7 +109,7 @@ public class test : MonoBehaviour
         targetPosition = coordinateDifference;
         //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
         //distance was multiplied by 12 so I didn't have to walk that far to get the UFO to show up closer
-        planeList[0].transform.position = -targetPosition;
+        planeList[0].transform.position = targetRelativePosition - targetPosition;
     }
 
     IEnumerator GetGps()
