@@ -104,14 +104,12 @@ public class test : MonoBehaviour
     {
         var coordinateDifference = CoordinateDifference(lat1, lon1, lat2, lon2);
         coordinateDifference.z = alt2 - alt1;
-        tb.GetComponent<Text>().text = "Relative position: " + targetPosition
-            + "\nGPS: "+ Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
 
         //set the target position of the ufo, this is where we lerp to in the update function
         targetPosition = coordinateDifference;
         //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
         //distance was multiplied by 12 so I didn't have to walk that far to get the UFO to show up closer
-        planeList[0].transform.Translate(targetPosition);
+        planeList[0].transform.position = -targetPosition;
     }
 
     IEnumerator GetGps()
@@ -163,7 +161,10 @@ public class test : MonoBehaviour
                 currentAltitude = Input.location.lastData.altitude;
                 Debug.Log("GPS update!! " + currentLatitude + ", " + currentLongitude);
                 //calculate the distance between where the player was when the app started and where they are now.
+                tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
+                    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
                 UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
+                tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
             }
             Input.location.Stop();
         }
