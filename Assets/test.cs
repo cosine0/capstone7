@@ -27,6 +27,7 @@ public class test : MonoBehaviour
     private bool setOriginalValues = true;
 
     private Vector3 targetPosition;
+    private Vector3 targetRelativePosition;
 
     private float speed = .1f;
 
@@ -52,7 +53,8 @@ public class test : MonoBehaviour
         googlePlane.name = "google";
         planeList.Add(googlePlane);
 
-        planeList[0].transform.position = new Vector3(3.17f, 3.0f, 19.1f);
+        targetRelativePosition = new Vector3(3.17f, 3.0f, 19.1f);
+        planeList[0].transform.position = targetRelativePosition;
         planeList[0].transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
 
         StartCoroutine(GetGps());
