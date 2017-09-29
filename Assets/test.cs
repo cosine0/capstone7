@@ -10,7 +10,6 @@ using UnityEngine.Networking;
 
 public class test : MonoBehaviour
 {
-
     public GameObject textBox;
     public Texture2D myTexture;
     public Material sampleMaterial;
@@ -42,14 +41,12 @@ public class test : MonoBehaviour
         //tb2 = GameObject.FindGameObjectWithTag("longitudeText");
         //tb3 = GameObject.FindGameObjectWithTag("altitudeText");
 
-        Debug.Log("Create Plane");
         //GameObject googlePlane = new GameObject("google");
         //planeList.Add(googlePlane);
 
         GameObject googlePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         googlePlane.name = "google";
         planeList.Add(googlePlane);
-        Debug.Log(planeList.Count);
 
         StartCoroutine(GetWebTexture());
 
@@ -142,14 +139,14 @@ public class test : MonoBehaviour
             // Service didn't initialize in 20 seconds
             if (maxWait < 1)
             {
-                print("Timed out");
+                Debug.Log("Timed out");
                 yield break;
             }
 
             // Connection has failed
             if (Input.location.status == LocationServiceStatus.Failed)
             {
-                print("Unable to determine device location");
+                Debug.Log("Unable to determine device location");
                 yield break;
             }
             else
@@ -181,24 +178,14 @@ public class test : MonoBehaviour
     IEnumerator GetWebTexture()
     {
         googleRequest = UnityWebRequestTexture.GetTexture("https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg");
-        Debug.Log("Request to google server!");
         yield return googleRequest.Send();
         while (!googleRequest.isDone)
         {
             yield return new WaitForSeconds(0.1f);
         }
-        Debug.Log("Request Done!");
-        if (googleRequest.isHttpError || googleRequest.isNetworkError)
-            Debug.Log("Errorrorororor");
-        Debug.Log("web response code:" + googleRequest.responseCode);
-        myTexture = DownloadHandlerTexture.GetContent(googleRequest);
-        Debug.Log("Texture: " + myTexture.height + ", " + myTexture.width);
 
-        Debug.Log("GetWeb " + myTexture.GetInstanceID());
-        sampleMaterial.mainTexture = myTexture;
-        planeList[0].GetComponent<Renderer>().material = new Material(sampleMaterial);
-        Debug.Log(planeList[0].GetComponent<Renderer>().material.mainTexture.name);
-        Debug.Log("SetTexture " + myTexture.GetInstanceID());
+        myTexture = DownloadHandlerTexture.GetContent(googleRequest);
+        planeList[0].GetComponent<Renderer>().material.mainTexture = myTexture;
 
         yield return null;
     }
