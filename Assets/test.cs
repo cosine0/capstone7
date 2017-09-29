@@ -11,10 +11,9 @@ using UnityEngine.Networking;
 public class test : MonoBehaviour
 {
 
-    public GameObject tb;
-    public GameObject tb1;
-    public GameObject tb2;
-    public GameObject tb3;
+    public GameObject textBox;
+    public Texture2D myTexture;
+    public Material sampleMaterial;
     public List<GameObject> planeList;
 
     private float startingLatitude;
@@ -32,15 +31,13 @@ public class test : MonoBehaviour
     private Vector3 planeGPSLocation;
 
     private float speed = .1f;
-
-    public Texture myTexture;
-    public UnityWebRequest googleRequest;
+    private UnityWebRequest googleRequest;
 
     private IEnumerator GetGPSCoroutine;
 
     void Start()
     {
-        //tb = GameObject.FindGameObjectWithTag("distanceText");
+        //textBox = GameObject.FindGameObjectWithTag("distanceText");
         //tb1 = GameObject.FindGameObjectWithTag("latitudeText");
         //tb2 = GameObject.FindGameObjectWithTag("longitudeText");
         //tb3 = GameObject.FindGameObjectWithTag("altitudeText");
@@ -92,7 +89,7 @@ public class test : MonoBehaviour
                 Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
         var bearing = Mathf.Atan2(y, x);
 
-        tb.GetComponent<Text>().text = "distance : " + distance;
+        textBox.GetComponent<Text>().text = "distance : " + distance;
 
         return new Vector2(distance, bearing);
     }
@@ -170,12 +167,12 @@ public class test : MonoBehaviour
                 currentLongitude = Input.location.lastData.longitude;
                 currentAltitude = Input.location.lastData.altitude;
                 //calculate the distance between where the player was when the app started and where they are now.
-                tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
+                textBox.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
                     "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
 
                 UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
 
-                tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
+                textBox.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
             }
             Input.location.Stop();
         }
@@ -186,28 +183,22 @@ public class test : MonoBehaviour
         googleRequest = UnityWebRequestTexture.GetTexture("https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg");
         Debug.Log("Request to google server!");
         yield return googleRequest.Send();
-        Debug.Log("Create Texture!");
+        while (!googleRequest.isDone)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
+        Debug.Log("Request Done!");
+        if (googleRequest.isHttpError || googleRequest.isNetworkError)
+            Debug.Log("Errorrorororor");
+        Debug.Log("web response code:" + googleRequest.responseCode);
         myTexture = DownloadHandlerTexture.GetContent(googleRequest);
+        Debug.Log("Texture: " + myTexture.height + ", " + myTexture.width);
+
         Debug.Log("GetWeb " + myTexture.GetInstanceID());
-        
-//        byte[] fileData;
-//        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
-//        Debug.Log(filePath);
-//        Debug.Log("1111");
-//        if (File.Exists(filePath))
-//        {
-//            Debug.Log("photo File exists!!");
-//            Texture2D tmp;
-//            fileData = File.ReadAllBytes(filePath);
-//            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
-//            Debug.Log(tmp.GetInstanceID());
-//            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
-//            myTexture = (Texture2D) tmp;
-//            Debug.Log("2222");
-//        }
-//        myTexture = (Texture)Resources.Load("photo");
-        planeList[0].GetComponent<MeshRenderer>().material.mainTexture = myTexture;
-        Debug.Log("3333");
+        sampleMaterial.mainTexture = myTexture;
+        planeList[0].GetComponent<Renderer>().material = new Material(sampleMaterial);
+        Debug.Log(planeList[0].GetComponent<Renderer>().material.mainTexture.name);
+        Debug.Log("SetTexture " + myTexture.GetInstanceID());
 
         yield return null;
     }
