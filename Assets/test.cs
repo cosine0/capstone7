@@ -6,6 +6,7 @@ using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using KalmanDemo;
 
 
 public class test : MonoBehaviour
@@ -25,12 +26,19 @@ public class test : MonoBehaviour
     private float currentLatitude;
     private float currentLongitude;
     private float currentAltitude;
+    private float currentBearing;
 
     private bool setOriginalValues = true;
 
     private Vector3 targetPosition;
     private Vector3 planeRelativePosition;
     private Vector3 planeGPSLocation;
+
+    private Kalman1D kalman_longitude;
+    private Kalman1D kalman_latitude;
+    private Kalman1D kalman_altitude;
+    private Kalman1D kalman_bearing;
+    private float lastGpsMeasureTime;
 
     private float speed = .1f;
 
@@ -65,12 +73,17 @@ public class test : MonoBehaviour
         StartCoroutine(GetGps());
         //        GetGPSCoroutine = GetGps();
 
-       // Debug.Log(myTexture.GetInstanceID() + " " + myTexture.width + " " + myTexture.height);
+        // Debug.Log(myTexture.GetInstanceID() + " " + myTexture.width + " " + myTexture.height);
     }
 
     void Update()
     {
-        //        GetGPSCoroutine.MoveNext();
+        var currentTime = Time.time;
+        var deltaTime = lastGpsMeasureTime - currentTime;
+        if (deltaTime == 0)
+            Debug.Log("delta Time");
+        currentBearing = (float)kalman_bearing.Update(Input.compass.trueHeading, deltaTime);
+        mainCamera.transform.eulerAngles = new Vector3(0.0f, currentBearing, 0.0f);
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
@@ -164,10 +177,20 @@ public class test : MonoBehaviour
             {
                 if (setOriginalValues)
                 {
-                    startingLatitude = Input.location.lastData.latitude;
-                    startingLongitude = Input.location.lastData.longitude;
-                    startingAltitude = Input.location.lastData.altitude;
-                    startingBearing = Input.compass.trueHeading;
+                    lastGpsMeasureTime = Time.time;
+                    currentLatitude = startingLatitude = Input.location.lastData.latitude;
+                    currentLongitude = startingLongitude = Input.location.lastData.longitude;
+                    currentAltitude = startingAltitude = Input.location.lastData.altitude;
+                    currentBearing = startingBearing = Input.compass.trueHeading;
+
+                    kalman_longitude = new Kalman1D();
+                    kalman_longitude.Reset(0.1, 0.1, 0.1, 400.0, startingLongitude);
+                    kalman_latitude = new Kalman1D();
+                    kalman_latitude.Reset(0.1, 0.1, 0.1, 400.0, startingLatitude);
+                    kalman_altitude = new Kalman1D();
+                    kalman_altitude.Reset(0.1, 0.1, 0.1, 400.0, startingLatitude);
+                    kalman_bearing = new Kalman1D();
+                    kalman_bearing.Reset(0.1, 0.1, 0.1, 400.0, startingBearing);
 
                     float[] tmpBearing = new float[10];
                     for (int i = 0; i < 10; i++)
@@ -180,18 +203,36 @@ public class test : MonoBehaviour
                     Debug.Log("startingBearing : " + startingBearing);
                     setOriginalValues = false;
                 }
+                else
+                {
+                    //overwrite current lat and lon everytime
+                    var currentTime = Time.time;
+                    var deltaTime = lastGpsMeasureTime - currentTime;
+                    if (deltaTime == 0)
+                        Debug.Log("delta Time");
+                    lastGpsMeasureTime = currentTime;
+//                    currentLongitude = (float)kalman_longitude.Update(Input.location.lastData.longitude, deltaTime);
+//                    currentLatitude = (float)kalman_latitude.Update(Input.location.lastData.latitude, deltaTime);
+//                    currentAltitude = (float)kalman_altitude.Update(Input.location.lastData.altitude, deltaTime);
+//                    currentBearing = (float)kalman_bearing.Update(Input.compass.trueHeading, deltaTime);
+                    currentLongitude = Input.location.lastData.longitude;
+                    currentLatitude = Input.location.lastData.latitude;
+                    currentAltitude = Input.location.lastData.altitude;
+                    currentBearing = Input.compass.trueHeading;
+                    
+                    mainCamera.transform.eulerAngles = new Vector3(0.0f, currentBearing, 0.0f);
+                    //calculate the distance between where the player was when the app started and where they are now.
+                    tb.GetComponent<Text>().text =
+                        "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
+                        "\nGPS: " + currentLongitude + ", " + currentLatitude + ", " + currentAltitude
+                        + "\nplane angle: " + planeList[0].transform.eulerAngles.ToString()
+                        + "\ncamera angle: " + mainCamera.transform.eulerAngles;
 
-                //overwrite current lat and lon everytime
-                currentLatitude = Input.location.lastData.latitude;
-                currentLongitude = Input.location.lastData.longitude;
-                currentAltitude = Input.location.lastData.altitude;
-                //calculate the distance between where the player was when the app started and where they are now.
-                //tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
-                //    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
+                    UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude,
+                        currentLongitude, currentAltitude);
 
-                UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
-
-                //tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
+                    //tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
+                }
             }
             Input.location.Stop();
         }
@@ -205,23 +246,23 @@ public class test : MonoBehaviour
         Debug.Log("Create Texture!");
         myTexture = DownloadHandlerTexture.GetContent(googleRequest);
         Debug.Log("GetWeb " + myTexture.GetInstanceID());
-        
-//        byte[] fileData;
-//        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
-//        Debug.Log(filePath);
-//        Debug.Log("1111");
-//        if (File.Exists(filePath))
-//        {
-//            Debug.Log("photo File exists!!");
-//            Texture2D tmp;
-//            fileData = File.ReadAllBytes(filePath);
-//            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
-//            Debug.Log(tmp.GetInstanceID());
-//            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
-//            myTexture = (Texture2D) tmp;
-//            Debug.Log("2222");
-//        }
-//        myTexture = (Texture)Resources.Load("photo");
+
+        //        byte[] fileData;
+        //        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
+        //        Debug.Log(filePath);
+        //        Debug.Log("1111");
+        //        if (File.Exists(filePath))
+        //        {
+        //            Debug.Log("photo File exists!!");
+        //            Texture2D tmp;
+        //            fileData = File.ReadAllBytes(filePath);
+        //            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
+        //            Debug.Log(tmp.GetInstanceID());
+        //            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
+        //            myTexture = (Texture2D) tmp;
+        //            Debug.Log("2222");
+        //        }
+        //        myTexture = (Texture)Resources.Load("photo");
         planeList[0].GetComponent<MeshRenderer>().material.mainTexture = myTexture;
         Debug.Log(planeList[0].GetComponent<MeshRenderer>().material.shader);
         Debug.Log("3333");
