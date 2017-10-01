@@ -7,12 +7,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
-
 public class test : MonoBehaviour
 {
     public GameObject textBox;
     public Texture2D myTexture;
-    public Material sampleMaterial;
     public List<GameObject> planeList;
 
     private float startingLatitude;
@@ -36,14 +34,6 @@ public class test : MonoBehaviour
 
     void Start()
     {
-        //textBox = GameObject.FindGameObjectWithTag("distanceText");
-        //tb1 = GameObject.FindGameObjectWithTag("latitudeText");
-        //tb2 = GameObject.FindGameObjectWithTag("longitudeText");
-        //tb3 = GameObject.FindGameObjectWithTag("altitudeText");
-
-        //GameObject googlePlane = new GameObject("google");
-        //planeList.Add(googlePlane);
-
         GameObject googlePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         googlePlane.name = "google";
         planeList.Add(googlePlane);
@@ -185,6 +175,7 @@ public class test : MonoBehaviour
         }
 
         myTexture = DownloadHandlerTexture.GetContent(googleRequest);
+        Debug.Log("Shader Name:" + planeList[0].GetComponent<Renderer>().material.shader.name);
         planeList[0].GetComponent<Renderer>().material.mainTexture = myTexture;
 
         yield return null;
