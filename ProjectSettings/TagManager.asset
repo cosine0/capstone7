@@ -3,7 +3,10 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - latitudeText
+  - longitudeText
+  - altitudeText
   layers:
   - Default
   - TransparentFX

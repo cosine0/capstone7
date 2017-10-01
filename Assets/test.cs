@@ -7,16 +7,51 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+public class ADInfo
+{
+    public string name;
+    public Vector3 GPSInfo;
+    public float bearing;
+    public string bannerUrl;
+    public string sub;
+    public Texture tex;
+};
+
+public class ARObject
+{
+    public GameObject GameOBJ
+    {
+        get { return GameOBJ; }
+        set { GameOBJ = value; }
+    }
+    public ADInfo AdInfo
+    {
+        get { return AdInfo; }
+        set { AdInfo = value; }
+    }
+    public void Create()
+    {
+
+    }
+    public void Update()
+    {
+
+    }
+    public void Destroy()
+    {
+
+    }
+};
 
 public class test : MonoBehaviour
 {
-    public GameObject tb;
     public GameObject tb1;
     public GameObject tb2;
     public GameObject tb3;
-    public List<GameObject> planeList;
+
     public GameObject mainCamera;
 
+    /*  Starting Infomation */
     public float startingBearing;
     private float startingLatitude;
     private float startingLongitude;
@@ -32,45 +67,62 @@ public class test : MonoBehaviour
     private Vector3 planeRelativePosition;
     private Vector3 planeGPSLocation;
 
-    private float speed = .1f;
-
-    public Texture myTexture;
-    public UnityWebRequest googleRequest;
+    public UnityWebRequest textureWebRequest;
 
     private IEnumerator GetGPSCoroutine;
 
     void Start()
     {
-        //tb = GameObject.FindGameObjectWithTag("distanceText");
-        //tb1 = GameObject.FindGameObjectWithTag("latitudeText");
-        //tb2 = GameObject.FindGameObjectWithTag("longitudeText");
-        //tb3 = GameObject.FindGameObjectWithTag("altitudeText");
+        /*  Debug Info Print    */
+        tb1 = GameObject.FindGameObjectWithTag("latitudeText");
+        tb2 = GameObject.FindGameObjectWithTag("longitudeText");
+        tb3 = GameObject.FindGameObjectWithTag("altitudeText");
+
+        // GPS Coroutine Start
+        StartCoroutine(GetGps());
+
+        // main Camera Setting
         mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
-        Debug.Log("Create Plane");
-        //GameObject googlePlane = new GameObject("google");
-        //planeList.Add(googlePlane);
+        /*  Test Data Create    */
+        ADInfo tmp_ad_info = new ADInfo
+        {
+            name = "Google",
+            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
+            bearing = 0.0f,
+            bannerUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+            sub = "",
+            tex = null
+        };
 
-        GameObject googlePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        googlePlane.name = "google";
-        planeList.Add(googlePlane);
-        Debug.Log(planeList.Count);
+        GameObject tmpPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
 
-        StartCoroutine(GetWebTexture());
+        ARObject test_set_1;
 
-        planeGPSLocation = new Vector3(126.6572f, 37.45068f, 52.9f);
-        planeRelativePosition = new Vector3(0.0f, 0.0f, 30.0f);
-        planeList[0].transform.position = planeRelativePosition;
-        planeList[0].transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
-        StartCoroutine(GetGps());
-        //        GetGPSCoroutine = GetGps();
+        test_set_1.
+        ///////////////////////////////////////////////////
 
-       // Debug.Log(myTexture.GetInstanceID() + " " + myTexture.width + " " + myTexture.height);
+        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+
+        // create plane
+        
+
     }
 
     void Update()
     {
         //        GetGPSCoroutine.MoveNext();
+    }
+    void CreateADPlane(ADInfo info)
+    { 
+        tmpPlane.name = info.name;
+        
+        // 텍스쳐 다운로드
+        StartCoroutine(GetWebTexture(tmpPlane, info));
+ 
+        // add to list
+        planeList.Add(tmpPlane);
+        ADList.Add(info);
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
@@ -110,7 +162,7 @@ public class test : MonoBehaviour
         return new Vector3(yDifference, 0.0f, xDifference);
     }
 
-    public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float lon2, float alt2)
+public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float lon2, float alt2)
     {
         var coordinateDifference = CoordinateDifference(lat1, lon1, lat2, lon2);
         coordinateDifference.y = alt2 - alt1;
@@ -118,12 +170,7 @@ public class test : MonoBehaviour
         //set the target position of the ufo, this is where we lerp to in the update function
         targetPosition = coordinateDifference;
         //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
-        //distance was multiplied by 12 so I didn't have to walk that far to get the UFO to show up closer
-        Debug.Log("PlanePosion : " + planeList[0].transform.position);
-        Debug.Log("planeRelativePosition : " + planeRelativePosition);
-        Debug.Log("targetPosiion : " + targetPosition);
         planeList[0].transform.position = planeRelativePosition - targetPosition;
-
     }
 
     IEnumerator GetGps()
@@ -169,13 +216,6 @@ public class test : MonoBehaviour
                     startingAltitude = Input.location.lastData.altitude;
                     startingBearing = Input.compass.trueHeading;
 
-                    float[] tmpBearing = new float[10];
-                    for (int i = 0; i < 10; i++)
-                    {
-                        tmpBearing[i] = Input.compass.trueHeading;
-                        Debug.Log(tmpBearing[i]);
-                    }
-
                     mainCamera.transform.eulerAngles = new Vector3(0.0f, startingBearing, 0.0f);
                     Debug.Log("startingBearing : " + startingBearing);
                     setOriginalValues = false;
@@ -185,47 +225,47 @@ public class test : MonoBehaviour
                 currentLatitude = Input.location.lastData.latitude;
                 currentLongitude = Input.location.lastData.longitude;
                 currentAltitude = Input.location.lastData.altitude;
+                
+                // print debug info
+                tb1.GetComponent<Text>().text = "latitude : " + currentLatitude;
+                tb2.GetComponent<Text>().text = "longitude : " + currentLongitude;
+                tb3.GetComponent<Text>().text = "altitude : " + currentAltitude;
                 //calculate the distance between where the player was when the app started and where they are now.
-                //tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
-                //    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
 
                 UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
-
-                //tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
             }
             Input.location.Stop();
         }
     }
 
-    IEnumerator GetWebTexture()
+    IEnumerator GetWebTexture(GameObject planeInfo, ADInfo adInfo)
     {
-        googleRequest = UnityWebRequestTexture.GetTexture("https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg");
-        Debug.Log("Request to google server!");
-        yield return googleRequest.Send();
-        Debug.Log("Create Texture!");
-        myTexture = DownloadHandlerTexture.GetContent(googleRequest);
-        Debug.Log("GetWeb " + myTexture.GetInstanceID());
-        
-//        byte[] fileData;
-//        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
-//        Debug.Log(filePath);
-//        Debug.Log("1111");
-//        if (File.Exists(filePath))
-//        {
-//            Debug.Log("photo File exists!!");
-//            Texture2D tmp;
-//            fileData = File.ReadAllBytes(filePath);
-//            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
-//            Debug.Log(tmp.GetInstanceID());
-//            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
-//            myTexture = (Texture2D) tmp;
-//            Debug.Log("2222");
-//        }
-//        myTexture = (Texture)Resources.Load("photo");
-        planeList[0].GetComponent<MeshRenderer>().material.mainTexture = myTexture;
-        Debug.Log(planeList[0].GetComponent<MeshRenderer>().material.shader);
-        Debug.Log("3333");
+        Texture tmpTexture;
 
-        yield return null;
+        textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
+        Debug.Log("Request to server!");
+        yield return textureWebRequest.Send();
+
+        Debug.Log("Create Texture!");
+        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
+        
+        planeInfo.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+
+        // load texture from file
+        //
+        //        byte[] fileData;
+        //        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
+        //        Debug.Log(filePath);
+        //        if (File.Exists(filePath))
+        //        {
+        //            Debug.Log("photo File exists!!");
+        //            Texture2D tmp;
+        //            fileData = File.ReadAllBytes(filePath);
+        //            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
+        //            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
+        //            myTexture = (Texture2D) tmp;
+        //        }
+        //        myTexture = (Texture)Resources.Load("photo");
     }
 }
