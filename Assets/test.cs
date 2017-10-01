@@ -10,13 +10,14 @@ using UnityEngine.Networking;
 
 public class test : MonoBehaviour
 {
-
     public GameObject tb;
     public GameObject tb1;
     public GameObject tb2;
     public GameObject tb3;
     public List<GameObject> planeList;
+    public GameObject mainCamera;
 
+    public float startingBearing;
     private float startingLatitude;
     private float startingLongitude;
     private float startingAltitude;
@@ -44,6 +45,7 @@ public class test : MonoBehaviour
         //tb1 = GameObject.FindGameObjectWithTag("latitudeText");
         //tb2 = GameObject.FindGameObjectWithTag("longitudeText");
         //tb3 = GameObject.FindGameObjectWithTag("altitudeText");
+        mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         Debug.Log("Create Plane");
         //GameObject googlePlane = new GameObject("google");
@@ -60,9 +62,10 @@ public class test : MonoBehaviour
         planeRelativePosition = new Vector3(0.0f, 0.0f, 30.0f);
         planeList[0].transform.position = planeRelativePosition;
         planeList[0].transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
-
         StartCoroutine(GetGps());
         //        GetGPSCoroutine = GetGps();
+
+       // Debug.Log(myTexture.GetInstanceID() + " " + myTexture.width + " " + myTexture.height);
     }
 
     void Update()
@@ -92,7 +95,7 @@ public class test : MonoBehaviour
                 Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
         var bearing = Mathf.Atan2(y, x);
 
-        tb.GetComponent<Text>().text = "distance : " + distance;
+        //tb.GetComponent<Text>().text = "distance : " + distance;
 
         return new Vector2(distance, bearing);
     }
@@ -120,6 +123,7 @@ public class test : MonoBehaviour
         Debug.Log("planeRelativePosition : " + planeRelativePosition);
         Debug.Log("targetPosiion : " + targetPosition);
         planeList[0].transform.position = planeRelativePosition - targetPosition;
+
     }
 
     IEnumerator GetGps()
@@ -133,6 +137,7 @@ public class test : MonoBehaviour
 
             // Start service before querying location
             Input.location.Start(1f, .1f);
+            Input.compass.enabled = true;
 
             // Wait until service initializes
             int maxWait = 20;
@@ -162,6 +167,17 @@ public class test : MonoBehaviour
                     startingLatitude = Input.location.lastData.latitude;
                     startingLongitude = Input.location.lastData.longitude;
                     startingAltitude = Input.location.lastData.altitude;
+                    startingBearing = Input.compass.trueHeading;
+
+                    float[] tmpBearing = new float[10];
+                    for (int i = 0; i < 10; i++)
+                    {
+                        tmpBearing[i] = Input.compass.trueHeading;
+                        Debug.Log(tmpBearing[i]);
+                    }
+
+                    mainCamera.transform.eulerAngles = new Vector3(0.0f, startingBearing, 0.0f);
+                    Debug.Log("startingBearing : " + startingBearing);
                     setOriginalValues = false;
                 }
 
@@ -170,12 +186,12 @@ public class test : MonoBehaviour
                 currentLongitude = Input.location.lastData.longitude;
                 currentAltitude = Input.location.lastData.altitude;
                 //calculate the distance between where the player was when the app started and where they are now.
-                tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
-                    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
+                //tb.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
+                //    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
 
                 UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
 
-                tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
+                //tb.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
             }
             Input.location.Stop();
         }
@@ -207,6 +223,7 @@ public class test : MonoBehaviour
 //        }
 //        myTexture = (Texture)Resources.Load("photo");
         planeList[0].GetComponent<MeshRenderer>().material.mainTexture = myTexture;
+        Debug.Log(planeList[0].GetComponent<MeshRenderer>().material.shader);
         Debug.Log("3333");
 
         yield return null;
