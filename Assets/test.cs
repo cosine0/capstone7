@@ -7,17 +7,27 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+/// <summary>
+/// Start of Class Definition
+/// 
+/// ADInfo - 광고 정보
+/// ARObject abstract ARObject class
+/// ARPlane - 광고 정보를 놓는 ARObject (ARObject 상속)
+/// UserInfo - 사용자 정보 클래스 GPS정보, ID정보
+/// </summary>
+
 public class ADInfo
 {
-    public string name;
+    public string name = "";
     public Vector3 GPSInfo;
-    public float bearing;
-    public string bannerUrl;
-    public string sub;
-    public Texture tex;
+    public float bearing = 0.0f;
+    public string bannerUrl = "";
+    public string sub = "";
+    public Texture tex = null;
 };
 
-public class ARObject
+// abstract ARObject
+abstract public class ARObject
 {
     public GameObject GameOBJ
     {
@@ -29,27 +39,59 @@ public class ARObject
         get { return AdInfo; }
         set { AdInfo = value; }
     }
-    public void Create()
-    {
 
-    }
-    public void Update()
-    {
-
-    }
+    abstract public void Create();
+    abstract public void Update();
     public void Destroy()
     {
-
+        // delete가 없음 null로 수정해서 참조 횟수를 줄임
+        GameOBJ = null;
+        AdInfo = null;
     }
 };
 
+public class ARPlane : ARObject{
+    public ARPlane(ADInfo info)
+    {
+        AdInfo = info;
+    }
+    public override void Create()
+    {
+        GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
+        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+    }
+    public override void Update()
+    {
+        // position update
+    }
+}
+
+public class UserInfo
+{
+    public bool setOriginalValues = true;
+
+    public float startingBearing = 0.0f;
+    public float startingLatitude = 0.0f;
+    public float startingLongitude = 0.0f;
+    public float startingAltitude = 0.0f;
+
+    public float currentBearing = 0.0f;
+    public float currentLatitude = 0.0f;
+    public float currentLongitude = 0.0f;
+    public float currentAltitude = 0.0f;
+
+    public GameObject mainCamera = null;
+}
+
+/// <summary>
+/// End of Class Definition
+/// </summary>
 public class test : MonoBehaviour
 {
     public GameObject tb1;
     public GameObject tb2;
     public GameObject tb3;
-
-    public GameObject mainCamera;
 
     /*  Starting Infomation */
     public float startingBearing;
@@ -63,11 +105,11 @@ public class test : MonoBehaviour
 
     private bool setOriginalValues = true;
 
+    UserInfo userInfo;
+
     private Vector3 targetPosition;
     private Vector3 planeRelativePosition;
     private Vector3 planeGPSLocation;
-
-    public UnityWebRequest textureWebRequest;
 
     private IEnumerator GetGPSCoroutine;
 
@@ -81,8 +123,9 @@ public class test : MonoBehaviour
         // GPS Coroutine Start
         StartCoroutine(GetGps());
 
-        // main Camera Setting
-        mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        // Create User informaion
+        userInfo = new UserInfo();
+        userInfo.mainCamera = GameObject.FindGameObjectWithTag("MainCamera"); // main Camera Setting
 
         /*  Test Data Create    */
         ADInfo tmp_ad_info = new ADInfo
@@ -94,35 +137,11 @@ public class test : MonoBehaviour
             sub = "",
             tex = null
         };
-
-        GameObject tmpPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-
-        ARObject test_set_1;
-
-        test_set_1.
-        ///////////////////////////////////////////////////
-
-        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
-
-        // create plane
-        
-
     }
 
     void Update()
     {
         //        GetGPSCoroutine.MoveNext();
-    }
-    void CreateADPlane(ADInfo info)
-    { 
-        tmpPlane.name = info.name;
-        
-        // 텍스쳐 다운로드
-        StartCoroutine(GetWebTexture(tmpPlane, info));
- 
-        // add to list
-        planeList.Add(tmpPlane);
-        ADList.Add(info);
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
@@ -170,7 +189,7 @@ public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float
         //set the target position of the ufo, this is where we lerp to in the update function
         targetPosition = coordinateDifference;
         //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
-        planeList[0].transform.position = planeRelativePosition - targetPosition;
+        //planeList[0].transform.position = planeRelativePosition - targetPosition;
     }
 
     IEnumerator GetGps()
@@ -216,7 +235,7 @@ public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float
                     startingAltitude = Input.location.lastData.altitude;
                     startingBearing = Input.compass.trueHeading;
 
-                    mainCamera.transform.eulerAngles = new Vector3(0.0f, startingBearing, 0.0f);
+                    userInfo.mainCamera.transform.eulerAngles = new Vector3(0.0f, startingBearing, 0.0f);
                     Debug.Log("startingBearing : " + startingBearing);
                     setOriginalValues = false;
                 }
@@ -242,7 +261,7 @@ public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float
     {
         Texture tmpTexture;
 
-        textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
         Debug.Log("Request to server!");
         yield return textureWebRequest.Send();
 
