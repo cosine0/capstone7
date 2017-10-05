@@ -15,6 +15,7 @@ using UnityEngine.Networking;
 /// ARPlane - 광고 정보를 놓는 ARObject (ARObject 상속)
 /// UserInfo - 사용자 정보 클래스 GPS정보, ID정보
 /// </summary>
+/// 
 
 public class ADInfo
 {
@@ -26,44 +27,92 @@ public class ADInfo
     public Texture tex = null;
 };
 
+public class CommentInfo
+{
+    public string id = "";
+    // 날짜, 시간 추가
+    public string comment = "";
+}
+
 // abstract ARObject
 abstract public class ARObject
 {
+    public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
+
     public GameObject GameOBJ
     {
         get { return GameOBJ; }
         set { GameOBJ = value; }
     }
+
+    public ARObjectType ObjectType = ARObjectType.ARObjectError;
+
+    abstract public void Create();
+    abstract public void Update();
+    abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
+};
+
+public class ARPlane : ARObject {
     public ADInfo AdInfo
     {
         get { return AdInfo; }
         set { AdInfo = value; }
     }
 
-    abstract public void Create();
-    abstract public void Update();
-    public void Destroy()
-    {
-        // delete가 없음 null로 수정해서 참조 횟수를 줄임
-        GameOBJ = null;
-        AdInfo = null;
-    }
-};
-
-public class ARPlane : ARObject{
-    public ARPlane(ADInfo info)
+    protected ARPlane(ADInfo info)
     {
         AdInfo = info;
     }
+
     public override void Create()
     {
+        ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }
+
     public override void Update()
     {
         // position update
+    }
+
+    public override void Destroy()
+    {
+        GameOBJ = null;
+        AdInfo = null;
+    }
+}
+
+public class ARComment : ARObject
+{
+    public CommentInfo Comment
+    {
+        get { return Comment; }
+        set { Comment = value; }
+    }
+
+    protected ARComment(CommentInfo info)
+    {
+        Comment = info;
+    }
+
+    public override void Create()
+    {
+        // Mesh Type Definition
+        throw new NotImplementedException();
+    }
+
+    public override void Update()
+    {
+        // Billboard? - calculate camera's inverse matrix
+        throw new NotImplementedException();
+    }
+
+    public override void Destroy()
+    {
+        GameOBJ = null;
+        Comment = null;
     }
 }
 
@@ -87,6 +136,8 @@ public class UserInfo
 /// <summary>
 /// End of Class Definition
 /// </summary>
+/// 
+
 public class test : MonoBehaviour
 {
     public GameObject tb1;
@@ -105,7 +156,9 @@ public class test : MonoBehaviour
 
     private bool setOriginalValues = true;
 
-    UserInfo userInfo;
+    public UserInfo userInfo;
+
+    public List<ARObject> ARObjectList;
 
     private Vector3 targetPosition;
     private Vector3 planeRelativePosition;
@@ -137,11 +190,16 @@ public class test : MonoBehaviour
             sub = "",
             tex = null
         };
+
+
     }
 
     void Update()
     {
-        //        GetGPSCoroutine.MoveNext();
+        //// Position Update
+        //foreach(ARObject entity in ARObjectList) {
+        //    entity.Update();
+        //}
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
