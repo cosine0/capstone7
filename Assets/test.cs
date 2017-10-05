@@ -11,8 +11,10 @@ using UnityEngine.Networking;
 /// Start of Class Definition
 /// 
 /// ADInfo - 광고 정보
+/// CommentInfo - 코멘트 정보
 /// ARObject abstract ARObject class
 /// ARPlane - 광고 정보를 놓는 ARObject (ARObject 상속)
+/// ARComment - 사용자 정보를 놓는 ARObject (ARObject 상속)
 /// UserInfo - 사용자 정보 클래스 GPS정보, ID정보
 /// </summary>
 /// 
@@ -35,7 +37,7 @@ public class CommentInfo
 }
 
 // abstract ARObject
-abstract public class ARObject
+abstract public class ARObject : MonoBehaviour
 {
     public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
 
@@ -59,13 +61,31 @@ public class ARPlane : ARObject {
         set { AdInfo = value; }
     }
 
-    protected ARPlane(ADInfo info)
+    public ARPlane(ADInfo info)
     {
         AdInfo = info;
     }
 
+    IEnumerator GetWebTexture(GameObject planeInfo, ADInfo adInfo)
+    {
+        Texture tmpTexture;
+
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
+        Debug.Log("Request to server!");
+        yield return textureWebRequest.Send();
+
+        Debug.Log("Create Texture!");
+        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
+
+        planeInfo.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+    }
+
     public override void Create()
     {
+        // 텍스쳐 생성
+        StartCoroutine(GetWebTexture(GameOBJ, AdInfo));
+
         ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
@@ -92,7 +112,7 @@ public class ARComment : ARObject
         set { Comment = value; }
     }
 
-    protected ARComment(CommentInfo info)
+    public ARComment(CommentInfo info)
     {
         Comment = info;
     }
@@ -145,17 +165,6 @@ public class test : MonoBehaviour
     public GameObject tb3;
 
     /*  Starting Infomation */
-    public float startingBearing;
-    private float startingLatitude;
-    private float startingLongitude;
-    private float startingAltitude;
-
-    private float currentLatitude;
-    private float currentLongitude;
-    private float currentAltitude;
-
-    private bool setOriginalValues = true;
-
     public UserInfo userInfo;
 
     public List<ARObject> ARObjectList;
@@ -164,11 +173,9 @@ public class test : MonoBehaviour
     private Vector3 planeRelativePosition;
     private Vector3 planeGPSLocation;
 
-    private IEnumerator GetGPSCoroutine;
-
     void Start()
     {
-        /*  Debug Info Print    */
+        /*  Debug Info Printer    */
         tb1 = GameObject.FindGameObjectWithTag("latitudeText");
         tb2 = GameObject.FindGameObjectWithTag("longitudeText");
         tb3 = GameObject.FindGameObjectWithTag("altitudeText");
@@ -191,7 +198,10 @@ public class test : MonoBehaviour
             tex = null
         };
 
+        ARPlane tmp_plane = new ARPlane(tmp_ad_info);
 
+        ARObjectList.Add(tmp_plane);
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
     void Update()
@@ -239,7 +249,7 @@ public class test : MonoBehaviour
         return new Vector3(yDifference, 0.0f, xDifference);
     }
 
-public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float lon2, float alt2)
+    public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float lon2, float alt2)
     {
         var coordinateDifference = CoordinateDifference(lat1, lon1, lat2, lon2);
         coordinateDifference.y = alt2 - alt1;
@@ -286,63 +296,34 @@ public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float
             }
             else
             {
-                if (setOriginalValues)
+                if (userInfo.setOriginalValues)
                 {
-                    startingLatitude = Input.location.lastData.latitude;
-                    startingLongitude = Input.location.lastData.longitude;
-                    startingAltitude = Input.location.lastData.altitude;
-                    startingBearing = Input.compass.trueHeading;
+                    userInfo.startingLatitude = Input.location.lastData.latitude;
+                    userInfo.startingLongitude = Input.location.lastData.longitude;
+                    userInfo.startingAltitude = Input.location.lastData.altitude;
+                    userInfo.startingBearing = Input.compass.trueHeading;
 
-                    userInfo.mainCamera.transform.eulerAngles = new Vector3(0.0f, startingBearing, 0.0f);
-                    Debug.Log("startingBearing : " + startingBearing);
-                    setOriginalValues = false;
+                    // 초기 월드 회전각
+                    userInfo.mainCamera.transform.eulerAngles = new Vector3(0.0f, userInfo.startingBearing, 0.0f);
+                    Debug.Log("startingBearing : " + userInfo.startingBearing);
+                    userInfo.setOriginalValues = false;
                 }
 
                 //overwrite current lat and lon everytime
-                currentLatitude = Input.location.lastData.latitude;
-                currentLongitude = Input.location.lastData.longitude;
-                currentAltitude = Input.location.lastData.altitude;
-                
+                userInfo.currentLatitude = Input.location.lastData.latitude;
+                userInfo.currentLongitude = Input.location.lastData.longitude;
+                userInfo.currentAltitude = Input.location.lastData.altitude;
+
                 // print debug info
-                tb1.GetComponent<Text>().text = "latitude : " + currentLatitude;
-                tb2.GetComponent<Text>().text = "longitude : " + currentLongitude;
-                tb3.GetComponent<Text>().text = "altitude : " + currentAltitude;
+                tb1.GetComponent<Text>().text = "latitude : " + userInfo.currentLatitude;
+                tb2.GetComponent<Text>().text = "longitude : " + userInfo.currentLongitude;
+                tb3.GetComponent<Text>().text = "altitude : " + userInfo.currentAltitude;
                 //calculate the distance between where the player was when the app started and where they are now.
 
-                UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
+                UpdatePosition(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.startingAltitude,
+                    userInfo.currentLatitude, userInfo.currentLongitude, userInfo.currentAltitude);
             }
             Input.location.Stop();
         }
-    }
-
-    IEnumerator GetWebTexture(GameObject planeInfo, ADInfo adInfo)
-    {
-        Texture tmpTexture;
-
-        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
-        Debug.Log("Request to server!");
-        yield return textureWebRequest.Send();
-
-        Debug.Log("Create Texture!");
-        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
-        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
-        
-        planeInfo.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
-
-        // load texture from file
-        //
-        //        byte[] fileData;
-        //        var filePath = Application.dataPath + "/Resources/Textures/photo.jpg";
-        //        Debug.Log(filePath);
-        //        if (File.Exists(filePath))
-        //        {
-        //            Debug.Log("photo File exists!!");
-        //            Texture2D tmp;
-        //            fileData = File.ReadAllBytes(filePath);
-        //            tmp = new Texture2D(512, 512, TextureFormat.ARGB32, false);
-        //            tmp.LoadImage(fileData); //..this will auto-resize the texture dimensions.
-        //            myTexture = (Texture2D) tmp;
-        //        }
-        //        myTexture = (Texture)Resources.Load("photo");
     }
 }
