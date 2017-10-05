@@ -36,41 +36,40 @@ public class CommentInfo
     public string comment = "";
 }
 
-// abstract ARObject
-abstract public class ARObject : MonoBehaviour
+public class StaticCoroutine : MonoBehaviour
 {
-    public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
-
-    public GameObject GameOBJ
+    private static StaticCoroutine mInstance = null;
+    private static StaticCoroutine instance
     {
-        get { return GameOBJ; }
-        set { GameOBJ = value; }
+        get
+        {
+            if (mInstance == null)
+            {
+                mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
+
+                if (mInstance == null)
+                {
+                    mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
+                }
+            }
+            return mInstance;
+        }
     }
 
-    public ARObjectType ObjectType = ARObjectType.ARObjectError;
-
-    abstract public void Create();
-    abstract public void Update();
-    abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
-};
-
-public class ARPlane : ARObject {
-    public ADInfo AdInfo
+    void Awake()
     {
-        get { return AdInfo; }
-        set { AdInfo = value; }
+        if (mInstance == null)
+        {
+            mInstance = this as StaticCoroutine;
+ 
+        }
     }
 
-    public ARPlane(ADInfo info)
-    {
-        AdInfo = info;
-    }
-
-    IEnumerator GetWebTexture(GameObject planeInfo, ADInfo adInfo)
+    public IEnumerator GetWebTex()
     {
         Texture tmpTexture;
 
-        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(adInfo.bannerUrl);
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
         Debug.Log("Request to server!");
         yield return textureWebRequest.Send();
 
@@ -78,13 +77,82 @@ public class ARPlane : ARObject {
         tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
         Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
 
-        planeInfo.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+        Die();
+    }
+
+    public static void DoCoroutine(IEnumerator coroutine)
+    {
+        //여기서 인스턴스에 있는 코루틴이 실행될 것이다.
+        instance.StartCoroutine(instance.Perform(coroutine));
+    }
+
+    void Die()
+    {
+        mInstance = null;
+        Destroy(gameObject);
+    }
+    
+    void OnApplicationQuit()
+    {
+        mInstance = null;
+    }
+}
+
+public class GetWebTexture : MonoBehaviour
+{
+    public GameObject GameOBJ;
+    public ADInfo AdInfo;
+
+    public IEnumerator GetWebTex()
+    {
+        Texture tmpTexture;
+
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
+        Debug.Log("Request to server!");
+        yield return textureWebRequest.Send();
+
+        Debug.Log("Create Texture!");
+        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
+
+        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+    }
+}
+
+// abstract ARObject
+abstract public class ARObject
+{
+    public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
+
+    public GameObject GameOBJ;
+
+    public ARObjectType ObjectType;
+
+    abstract public void Create();
+    abstract public void Update();
+    abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
+};
+
+public class ARPlane : ARObject {
+    public GetWebTexture getWebTexture;
+
+    public ADInfo AdInfo;
+
+    public ARPlane(ADInfo info)
+    {
+        AdInfo = info;
+        Create();
     }
 
     public override void Create()
     {
         // 텍스쳐 생성
-        StartCoroutine(GetWebTexture(GameOBJ, AdInfo));
+        getWebTexture.GameOBJ = this.GameOBJ;
+        getWebTexture.AdInfo = this.AdInfo;
+
+        //getWebTexture.StartCoroutine("GetWebTex");
+        //StartCoroutine(GetWebTexture(GameOBJ, AdInfo));
 
         ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -95,6 +163,7 @@ public class ARPlane : ARObject {
     public override void Update()
     {
         // position update
+        //planeList[0].transform.position = planeRelativePosition - targetPosition;
     }
 
     public override void Destroy()
