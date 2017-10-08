@@ -38,8 +38,6 @@ public class CommentInfo
 
 public class StaticCoroutine : MonoBehaviour
 {
-    public static GameObject GameOBJ;
-    public static ADInfo AdInfo;
     private static StaticCoroutine mInstance = null;
     private static StaticCoroutine instance
     {
@@ -47,6 +45,18 @@ public class StaticCoroutine : MonoBehaviour
         {
             if (mInstance == null)
             {
+                mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
+
+                if (mInstance == null)
+                {
+                    mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
+                }
+            }
+            else
+            {
+                new WaitForSeconds(2.0f);
+                //new WaitUntil( () => (mInstance == null));
+
                 mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
 
                 if (mInstance == null)
@@ -118,10 +128,10 @@ public class ARPlane : ARObject {
         Texture tmpTexture;
 
         UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
-        Debug.Log("Request to server!");
+        Debug.Log(AdInfo.name + " Request to server!");
         yield return textureWebRequest.Send();
 
-        Debug.Log("Create Texture!");
+        Debug.Log(AdInfo.name + " Create Texture!");
         tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
         Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
 
@@ -135,7 +145,12 @@ public class ARPlane : ARObject {
 
         ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
+        GameOBJ.name = AdInfo.name;
+
+        // 초기 포지션 설정
+        GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
+        GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        //GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }
 
@@ -218,8 +233,6 @@ public class test : MonoBehaviour
     public List<ARObject> ARObjectList;
 
     private Vector3 targetPosition;
-    private Vector3 planeRelativePosition;
-    private Vector3 planeGPSLocation;
 
     void Start()
     {
@@ -249,9 +262,18 @@ public class test : MonoBehaviour
             tex = null
         };
 
-        ARPlane tmp_plane = new ARPlane(tmp_ad_info);
+        ADInfo tmp_ad_info2 = new ADInfo
+        {
+            name = "Gooooogle",
+            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
+            bearing = 0.0f,
+            bannerUrl = "https://s.pstatic.net/static/www/mobile/edit/2017/0928/mobile_144225383402.png",
+            sub = "",
+            tex = null
+        };
 
-        ARObjectList.Add(tmp_plane);
+        ARObjectList.Add(new ARPlane(tmp_ad_info));
+        ARObjectList.Add(new ARPlane(tmp_ad_info2));
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
@@ -284,8 +306,6 @@ public class test : MonoBehaviour
         var x = Mathf.Cos(radianLatitude1) * Mathf.Sin(radianLatitude2) -
                 Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
         var bearing = Mathf.Atan2(y, x);
-
-        //tb.GetComponent<Text>().text = "distance : " + distance;
 
         return new Vector2(distance, bearing);
     }
