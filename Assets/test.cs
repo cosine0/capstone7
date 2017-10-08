@@ -52,18 +52,6 @@ public class StaticCoroutine : MonoBehaviour
                     mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
                 }
             }
-            else
-            {
-                new WaitForSeconds(2.0f);
-                //new WaitUntil( () => (mInstance == null));
-
-                mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
-
-                if (mInstance == null)
-                {
-                    mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
-                }
-            }
             return mInstance;
         }
     }
@@ -79,7 +67,7 @@ public class StaticCoroutine : MonoBehaviour
     IEnumerator Perform(IEnumerator coroutine)
     {
         yield return StartCoroutine(coroutine);
-        Die();
+        //Die();
     }
 
     public static void DoCoroutine(IEnumerator coroutine)
@@ -133,7 +121,7 @@ public class ARPlane : ARObject {
 
         Debug.Log(AdInfo.name + " Create Texture!");
         tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
-        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
+        Debug.Log(AdInfo.name + "GetWeb " + tmpTexture.GetInstanceID());
 
         GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
     }
@@ -267,13 +255,24 @@ public class test : MonoBehaviour
             name = "Gooooogle",
             GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
             bearing = 0.0f,
-            bannerUrl = "https://s.pstatic.net/static/www/mobile/edit/2017/0928/mobile_144225383402.png",
+            bannerUrl = "http://ec2-52-90-181-59.compute-1.amazonaws.com:31337/1327.jpg",
+            sub = "",
+            tex = null
+        };
+
+        ADInfo tmp_ad_info3 = new ADInfo
+        {
+            name = "Naver",
+            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
+            bearing = 0.0f,
+            bannerUrl = "http://ec2-52-90-181-59.compute-1.amazonaws.com:31337/hedgehog.png",
             sub = "",
             tex = null
         };
 
         ARObjectList.Add(new ARPlane(tmp_ad_info));
         ARObjectList.Add(new ARPlane(tmp_ad_info2));
+        ARObjectList.Add(new ARPlane(tmp_ad_info3));
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
