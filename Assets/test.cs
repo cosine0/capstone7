@@ -38,6 +38,8 @@ public class CommentInfo
 
 public class StaticCoroutine : MonoBehaviour
 {
+    public static GameObject GameOBJ;
+    public static ADInfo AdInfo;
     private static StaticCoroutine mInstance = null;
     private static StaticCoroutine instance
     {
@@ -61,29 +63,18 @@ public class StaticCoroutine : MonoBehaviour
         if (mInstance == null)
         {
             mInstance = this as StaticCoroutine;
- 
         }
     }
 
-    public IEnumerator GetWebTex()
+    IEnumerator Perform(IEnumerator coroutine)
     {
-        Texture tmpTexture;
-
-        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
-        Debug.Log("Request to server!");
-        yield return textureWebRequest.Send();
-
-        Debug.Log("Create Texture!");
-        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
-        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
-
-        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+        yield return StartCoroutine(coroutine);
         Die();
     }
 
     public static void DoCoroutine(IEnumerator coroutine)
     {
-        //여기서 인스턴스에 있는 코루틴이 실행될 것이다.
+        //actually this point will be start coroutine
         instance.StartCoroutine(instance.Perform(coroutine));
     }
 
@@ -96,27 +87,6 @@ public class StaticCoroutine : MonoBehaviour
     void OnApplicationQuit()
     {
         mInstance = null;
-    }
-}
-
-public class GetWebTexture : MonoBehaviour
-{
-    public GameObject GameOBJ;
-    public ADInfo AdInfo;
-
-    public IEnumerator GetWebTex()
-    {
-        Texture tmpTexture;
-
-        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
-        Debug.Log("Request to server!");
-        yield return textureWebRequest.Send();
-
-        Debug.Log("Create Texture!");
-        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
-        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
-
-        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
     }
 }
 
@@ -135,8 +105,6 @@ abstract public class ARObject
 };
 
 public class ARPlane : ARObject {
-    public GetWebTexture getWebTexture;
-
     public ADInfo AdInfo;
 
     public ARPlane(ADInfo info)
@@ -145,14 +113,25 @@ public class ARPlane : ARObject {
         Create();
     }
 
+    IEnumerator GetWebTex()
+    {
+        Texture tmpTexture;
+
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
+        Debug.Log("Request to server!");
+        yield return textureWebRequest.Send();
+
+        Debug.Log("Create Texture!");
+        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log("GetWeb " + tmpTexture.GetInstanceID());
+
+        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+    }
+
     public override void Create()
     {
         // 텍스쳐 생성
-        getWebTexture.GameOBJ = this.GameOBJ;
-        getWebTexture.AdInfo = this.AdInfo;
-
-        //getWebTexture.StartCoroutine("GetWebTex");
-        //StartCoroutine(GetWebTexture(GameOBJ, AdInfo));
+        StaticCoroutine.DoCoroutine(GetWebTex());
 
         ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -255,6 +234,9 @@ public class test : MonoBehaviour
         // Create User informaion
         userInfo = new UserInfo();
         userInfo.mainCamera = GameObject.FindGameObjectWithTag("MainCamera"); // main Camera Setting
+
+        // Create Object List
+        ARObjectList = new List<ARObject>();
 
         /*  Test Data Create    */
         ADInfo tmp_ad_info = new ADInfo
