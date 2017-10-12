@@ -7,51 +7,303 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+/// <summary>
+/// Start of Class Definition
+/// 
+/// ADInfo - 광고 정보
+/// CommentInfo - 코멘트 정보
+/// ARObject abstract ARObject class
+/// ARPlane - 광고 정보를 놓는 ARObject (ARObject 상속)
+/// ARComment - 사용자 정보를 놓는 ARObject (ARObject 상속)
+/// UserInfo - 사용자 정보 클래스 GPS정보, ID정보
+/// </summary>
+/// 
+
+static class Constants
+{
+    public const float SmoothFactorCompass = 0.125f;
+    public const float SmoothThresholdCompass = 45.0f;
+}
+
+public class ADInfo
+{
+    public string name = "";
+    public Vector3 GPSInfo;
+    public float bearing = 0.0f;
+    public string bannerUrl = "";
+    public string sub = "";
+    public Texture tex = null;
+};
+
+public class CommentInfo
+{
+    public string id = "";
+    // 날짜, 시간 추가
+    public string comment = "";
+}
+
+public class StaticCoroutine : MonoBehaviour
+{
+    private static StaticCoroutine mInstance = null;
+    private static StaticCoroutine instance
+    {
+        get
+        {
+            if (mInstance == null)
+            {
+                mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
+
+                if (mInstance == null)
+                {
+                    mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
+                }
+            }
+            return mInstance;
+        }
+    }
+
+    void Awake()
+    {
+        if (mInstance == null)
+        {
+            mInstance = this as StaticCoroutine;
+        }
+    }
+
+    IEnumerator Perform(IEnumerator coroutine)
+    {
+        yield return StartCoroutine(coroutine);
+        //Die();
+    }
+
+    public static void DoCoroutine(IEnumerator coroutine)
+    {
+        //actually this point will be start coroutine
+        instance.StartCoroutine(instance.Perform(coroutine));
+    }
+
+    void Die()
+    {
+        mInstance = null;
+        Destroy(gameObject);
+    }
+
+    void OnApplicationQuit()
+    {
+        mInstance = null;
+    }
+}
+
+// abstract ARObject
+abstract public class ARObject
+{
+    public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
+
+    public GameObject GameOBJ;
+
+    public ARObjectType ObjectType;
+
+    abstract public void Create();
+    abstract public void Update();
+    abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
+};
+
+public class ARPlane : ARObject
+{
+    public ADInfo AdInfo;
+
+    public ARPlane(ADInfo info)
+    {
+        AdInfo = info;
+        Create();
+    }
+
+    IEnumerator GetWebTex()
+    {
+        Texture tmpTexture;
+
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
+        Debug.Log(AdInfo.name + " Request to server!");
+        yield return textureWebRequest.Send();
+
+        Debug.Log(AdInfo.name + " Create Texture!");
+        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log(AdInfo.name + "GetWeb " + tmpTexture.GetInstanceID());
+
+        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+    }
+
+    public override void Create()
+    {
+        // 텍스쳐 생성
+        StaticCoroutine.DoCoroutine(GetWebTex());
+
+        ObjectType = ARObjectType.ADPlane;
+        GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        GameOBJ.name = AdInfo.name;
+
+        // 초기 포지션 설정
+        GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
+        GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        //GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
+        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+    }
+
+    public override void Update()
+    {
+        // position update
+        //planeList[0].transform.position = planeRelativePosition - targetPosition;
+    }
+
+    public override void Destroy()
+    {
+        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
+        GameOBJ = null;
+        AdInfo = null;
+    }
+}
+
+public class ARComment : ARObject
+{
+    public CommentInfo Comment
+    {
+        get { return Comment; }
+        set { Comment = value; }
+    }
+
+    public ARComment(CommentInfo info)
+    {
+        Comment = info;
+    }
+
+    public override void Create()
+    {
+        // Mesh Type Definition
+        ObjectType = ARObjectType.ARComment;
+    }
+
+    public override void Update()
+    {
+        // Billboard? - calculate camera's inverse matrix
+        throw new NotImplementedException();
+    }
+
+    public override void Destroy()
+    {
+        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
+        GameOBJ = null;
+        Comment = null;
+    }
+}
+
+public class UserInfo
+{
+    public bool setOriginalValues = true;
+
+    public float startingBearing = 0.0f;
+    public float startingLatitude = 0.0f;
+    public float startingLongitude = 0.0f;
+    public float startingAltitude = 0.0f;
+
+    public float currentBearing = 0.0f;
+    public float currentLatitude = 0.0f;
+    public float currentLongitude = 0.0f;
+    public float currentAltitude = 0.0f;
+    public float lastGpsMeasureTime = 0.0f;
+
+    public GameObject mainCamera = null;
+}
+
+/// <summary>
+/// End of Class Definition
+/// </summary>
+///
+
 public class test : MonoBehaviour
 {
-    public GameObject textBox;
-    public Texture2D myTexture;
-    public List<GameObject> planeList;
+    public GameObject tb;
 
-    private float startingLatitude;
-    private float startingLongitude;
-    private float startingAltitude;
+    /*  Starting Infomation */
+    public UserInfo userInfo;
 
-    private float currentLatitude;
-    private float currentLongitude;
-    private float currentAltitude;
-
-    private bool setOriginalValues = true;
+    public List<ARObject> ARObjectList;
 
     private Vector3 targetPosition;
-    private Vector3 planeRelativePosition;
-    private Vector3 planeGPSLocation;
-
-    private float speed = .1f;
-    private UnityWebRequest googleRequest;
-
-    private IEnumerator GetGPSCoroutine;
 
     void Start()
     {
-        GameObject googlePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        googlePlane.name = "google";
-        planeList.Add(googlePlane);
+        /*  Debug Info Printer    */
+        //tb = GameObject.FindGameObjectWithTag("debugInfo"); Unity Editor에서 연결 시켰음.
 
-        StartCoroutine(GetWebTexture());
+        // Create User informaion
+        userInfo = new UserInfo();
+        userInfo.mainCamera = GameObject.FindGameObjectWithTag("MainCamera"); // main Camera Setting
 
-        planeGPSLocation = new Vector3(126.6572f, 37.45068f, 52.9f);
-        planeRelativePosition = new Vector3(0.0f, 0.0f, 30.0f);
-        planeList[0].transform.position = planeRelativePosition;
-        planeList[0].transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f);
-
+        // GPS Coroutine Start
         StartCoroutine(GetGps());
-        //        GetGPSCoroutine = GetGps();
+
+        // Create Object List
+        ARObjectList = new List<ARObject>();
+
+        /*  Test Data Create    */
+        ADInfo tmp_ad_info = new ADInfo
+        {
+            name = "Google",
+            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
+            bearing = 0.0f,
+            bannerUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+            sub = "",
+            tex = null
+        };
+
+        ARObjectList.Add(new ARPlane(tmp_ad_info));
+        /////////////////////////////////////////////////////////////////////////////////////////
     }
 
     void Update()
     {
-        //        GetGPSCoroutine.MoveNext();
+        float currentTime = Time.time;
+        float deltaTime = userInfo.lastGpsMeasureTime - currentTime;
+        float newCompass = Input.compass.trueHeading;
+
+        if (Mathf.Abs(newCompass - userInfo.currentBearing) < 180)
+        {
+            if (Math.Abs(newCompass - userInfo.currentBearing) > Constants.SmoothThresholdCompass)
+            {
+                userInfo.currentBearing = newCompass;
+            }
+            else
+            {
+                userInfo.currentBearing = userInfo.currentBearing + Constants.SmoothFactorCompass * (newCompass - userInfo.currentBearing);
+            }
+        }
+        else
+        {
+            if (360.0 - Math.Abs(newCompass - userInfo.currentBearing) > Constants.SmoothThresholdCompass)
+            {
+                userInfo.currentBearing = newCompass;
+            }
+            else
+            {
+                if (userInfo.currentBearing > newCompass)
+                {
+                    userInfo.currentBearing = (userInfo.currentBearing + Constants.SmoothFactorCompass * ((360 + newCompass - userInfo.currentBearing) % 360) + 360) % 360;
+                }
+                else
+                {
+                    userInfo.currentBearing = (userInfo.currentBearing - Constants.SmoothFactorCompass * ((360 - newCompass + userInfo.currentBearing) % 360) + 360) % 360;
+                }
+            }
+        }
+
+        Vector3 cameraAngle = userInfo.mainCamera.transform.eulerAngles;
+        cameraAngle.y = userInfo.currentBearing;
+        userInfo.mainCamera.transform.eulerAngles = cameraAngle;
+
+        //// Position Update
+        //foreach(ARObject entity in ARObjectList) {
+        //    entity.Update();
+        //}
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
@@ -76,8 +328,6 @@ public class test : MonoBehaviour
                 Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
         var bearing = Mathf.Atan2(y, x);
 
-        textBox.GetComponent<Text>().text = "distance : " + distance;
-
         return new Vector2(distance, bearing);
     }
 
@@ -99,11 +349,7 @@ public class test : MonoBehaviour
         //set the target position of the ufo, this is where we lerp to in the update function
         targetPosition = coordinateDifference;
         //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
-        //distance was multiplied by 12 so I didn't have to walk that far to get the UFO to show up closer
-        Debug.Log("PlanePosion : " + planeList[0].transform.position);
-        Debug.Log("planeRelativePosition : " + planeRelativePosition);
-        Debug.Log("targetPosiion : " + targetPosition);
-        planeList[0].transform.position = planeRelativePosition - targetPosition;
+        //planeList[0].transform.position = planeRelativePosition - targetPosition;
     }
 
     IEnumerator GetGps()
@@ -117,6 +363,7 @@ public class test : MonoBehaviour
 
             // Start service before querying location
             Input.location.Start(1f, .1f);
+            Input.compass.enabled = true;
 
             // Wait until service initializes
             int maxWait = 20;
@@ -129,55 +376,54 @@ public class test : MonoBehaviour
             // Service didn't initialize in 20 seconds
             if (maxWait < 1)
             {
-                Debug.Log("Timed out");
+                print("Timed out");
                 yield break;
             }
 
             // Connection has failed
             if (Input.location.status == LocationServiceStatus.Failed)
             {
-                Debug.Log("Unable to determine device location");
+                print("Unable to determine device location");
                 yield break;
             }
             else
             {
-                if (setOriginalValues)
+                if (userInfo.setOriginalValues)
                 {
-                    startingLatitude = Input.location.lastData.latitude;
-                    startingLongitude = Input.location.lastData.longitude;
-                    startingAltitude = Input.location.lastData.altitude;
-                    setOriginalValues = false;
+                    userInfo.lastGpsMeasureTime = Time.time;
+
+                    userInfo.startingLatitude = Input.location.lastData.latitude;
+                    userInfo.startingLongitude = Input.location.lastData.longitude;
+                    userInfo.startingAltitude = Input.location.lastData.altitude;
+                    userInfo.startingBearing = Input.compass.trueHeading;
+
+                    // 초기 월드 회전각
+                    userInfo.mainCamera.transform.eulerAngles = new Vector3(0.0f, userInfo.startingBearing, 0.0f);
+                    Debug.Log("startingBearing : " + userInfo.startingBearing);
+                    userInfo.setOriginalValues = false;
                 }
 
                 //overwrite current lat and lon everytime
-                currentLatitude = Input.location.lastData.latitude;
-                currentLongitude = Input.location.lastData.longitude;
-                currentAltitude = Input.location.lastData.altitude;
+                userInfo.lastGpsMeasureTime = Time.time;
+
+                userInfo.currentLatitude = Input.location.lastData.latitude;
+                userInfo.currentLongitude = Input.location.lastData.longitude;
+                userInfo.currentAltitude = Input.location.lastData.altitude;
+                userInfo.currentBearing = Input.compass.trueHeading;
+
+                // print debug info
+                tb.GetComponent<Text>().text =
+                    "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " + userInfo.startingAltitude
+                    + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
+                    + "\nplane angle: " + ARObjectList[0].GameOBJ.transform.eulerAngles.ToString()
+                    + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
+
                 //calculate the distance between where the player was when the app started and where they are now.
-                textBox.GetComponent<Text>().text = "Origin: " + startingLongitude + ", " + startingLatitude + ", " + startingAltitude +
-                    "\nGPS: " + Input.location.lastData.longitude + ", " + Input.location.lastData.latitude + ", " + Input.location.lastData.altitude;
 
-                UpdatePosition(startingLatitude, startingLongitude, startingAltitude, currentLatitude, currentLongitude, currentAltitude);
-
-                textBox.GetComponent<Text>().text += "\nRelative position: " + targetPosition;
+                UpdatePosition(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.startingAltitude,
+                    userInfo.currentLatitude, userInfo.currentLongitude, userInfo.currentAltitude);
             }
             Input.location.Stop();
         }
-    }
-
-    IEnumerator GetWebTexture()
-    {
-        googleRequest = UnityWebRequestTexture.GetTexture("https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg");
-        yield return googleRequest.Send();
-        while (!googleRequest.isDone)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-
-        myTexture = DownloadHandlerTexture.GetContent(googleRequest);
-        Debug.Log("Shader Name:" + planeList[0].GetComponent<Renderer>().material.shader.name);
-        planeList[0].GetComponent<Renderer>().material.mainTexture = myTexture;
-
-        yield return null;
     }
 }
