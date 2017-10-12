@@ -190,6 +190,7 @@ public class ARComment : ARObject
 
     public override void Destroy()
     {
+        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
         GameOBJ = null;
         Comment = null;
     }
