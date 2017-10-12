@@ -19,6 +19,12 @@ using UnityEngine.Networking;
 /// </summary>
 /// 
 
+static class Constants
+{
+    public const float SmoothFactorCompass = 0.125f;
+    public const float SmoothThresholdCompass = 45.0f;
+}
+
 public class ADInfo
 {
     public string name = "";
@@ -150,6 +156,7 @@ public class ARPlane : ARObject {
 
     public override void Destroy()
     {
+        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
         GameOBJ = null;
         AdInfo = null;
     }
@@ -171,7 +178,7 @@ public class ARComment : ARObject
     public override void Create()
     {
         // Mesh Type Definition
-        throw new NotImplementedException();
+        ObjectType = ARObjectType.ARComment;
     }
 
     public override void Update()
@@ -200,6 +207,7 @@ public class UserInfo
     public float currentLatitude = 0.0f;
     public float currentLongitude = 0.0f;
     public float currentAltitude = 0.0f;
+    public float lastGpsMeasureTime = 0.0f;
 
     public GameObject mainCamera = null;
 }
@@ -207,13 +215,11 @@ public class UserInfo
 /// <summary>
 /// End of Class Definition
 /// </summary>
-/// 
+///
 
 public class test : MonoBehaviour
 {
-    public GameObject tb1;
-    public GameObject tb2;
-    public GameObject tb3;
+    public GameObject tb;
 
     /*  Starting Infomation */
     public UserInfo userInfo;
@@ -225,16 +231,14 @@ public class test : MonoBehaviour
     void Start()
     {
         /*  Debug Info Printer    */
-        tb1 = GameObject.FindGameObjectWithTag("latitudeText");
-        tb2 = GameObject.FindGameObjectWithTag("longitudeText");
-        tb3 = GameObject.FindGameObjectWithTag("altitudeText");
-
-        // GPS Coroutine Start
-        StartCoroutine(GetGps());
+        //tb = GameObject.FindGameObjectWithTag("debugInfo"); Unity Editor에서 연결 시켰음.
 
         // Create User informaion
         userInfo = new UserInfo();
         userInfo.mainCamera = GameObject.FindGameObjectWithTag("MainCamera"); // main Camera Setting
+
+        // GPS Coroutine Start
+        StartCoroutine(GetGps());
 
         // Create Object List
         ARObjectList = new List<ARObject>();
@@ -250,34 +254,50 @@ public class test : MonoBehaviour
             tex = null
         };
 
-        ADInfo tmp_ad_info2 = new ADInfo
-        {
-            name = "Gooooogle",
-            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
-            bearing = 0.0f,
-            bannerUrl = "http://ec2-52-90-181-59.compute-1.amazonaws.com:31337/1327.jpg",
-            sub = "",
-            tex = null
-        };
-
-        ADInfo tmp_ad_info3 = new ADInfo
-        {
-            name = "Naver",
-            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
-            bearing = 0.0f,
-            bannerUrl = "http://ec2-52-90-181-59.compute-1.amazonaws.com:31337/hedgehog.png",
-            sub = "",
-            tex = null
-        };
-
         ARObjectList.Add(new ARPlane(tmp_ad_info));
-        ARObjectList.Add(new ARPlane(tmp_ad_info2));
-        ARObjectList.Add(new ARPlane(tmp_ad_info3));
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
     }
 
     void Update()
     {
+        float currentTime = Time.time;
+        float deltaTime = userInfo.lastGpsMeasureTime - currentTime;
+        float newCompass = Input.compass.trueHeading;
+
+        if (Mathf.Abs(newCompass - userInfo.currentBearing) < 180)
+        {
+            if (Math.Abs(newCompass - userInfo.currentBearing) > Constants.SmoothThresholdCompass)
+            {
+                userInfo.currentBearing = newCompass;
+            }
+            else 
+            {
+                userInfo.currentBearing = userInfo.currentBearing + Constants.SmoothFactorCompass * (newCompass - userInfo.currentBearing);
+            }
+        }
+        else
+        {
+            if (360.0 - Math.Abs(newCompass - userInfo.currentBearing) > Constants.SmoothThresholdCompass)
+            {
+                userInfo.currentBearing = newCompass;
+            }
+            else
+            {
+                if (userInfo.currentBearing > newCompass)
+                {
+                    userInfo.currentBearing = (userInfo.currentBearing + Constants.SmoothFactorCompass * ((360 + newCompass - userInfo.currentBearing) % 360) + 360) % 360;
+                }
+                else
+                {
+                    userInfo.currentBearing = (userInfo.currentBearing - Constants.SmoothFactorCompass * ((360 - newCompass + userInfo.currentBearing) % 360) + 360) % 360;
+                }
+            }
+        }
+
+        Vector3 cameraAngle = userInfo.mainCamera.transform.eulerAngles;
+        cameraAngle.y = userInfo.currentBearing;
+        userInfo.mainCamera.transform.eulerAngles = cameraAngle;
+    
         //// Position Update
         //foreach(ARObject entity in ARObjectList) {
         //    entity.Update();
@@ -368,6 +388,8 @@ public class test : MonoBehaviour
             {
                 if (userInfo.setOriginalValues)
                 {
+                    userInfo.lastGpsMeasureTime = Time.time;
+
                     userInfo.startingLatitude = Input.location.lastData.latitude;
                     userInfo.startingLongitude = Input.location.lastData.longitude;
                     userInfo.startingAltitude = Input.location.lastData.altitude;
@@ -380,14 +402,20 @@ public class test : MonoBehaviour
                 }
 
                 //overwrite current lat and lon everytime
+                userInfo.lastGpsMeasureTime = Time.time;
+
                 userInfo.currentLatitude = Input.location.lastData.latitude;
                 userInfo.currentLongitude = Input.location.lastData.longitude;
                 userInfo.currentAltitude = Input.location.lastData.altitude;
+                userInfo.currentBearing = Input.compass.trueHeading;
 
                 // print debug info
-                tb1.GetComponent<Text>().text = "latitude : " + userInfo.currentLatitude;
-                tb2.GetComponent<Text>().text = "longitude : " + userInfo.currentLongitude;
-                tb3.GetComponent<Text>().text = "altitude : " + userInfo.currentAltitude;
+                tb.GetComponent<Text>().text =
+                    "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " + userInfo.startingAltitude
+                    + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
+                    + "\nplane angle: " + ARObjectList[0].GameOBJ.transform.eulerAngles.ToString()
+                    + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
+
                 //calculate the distance between where the player was when the app started and where they are now.
 
                 UpdatePosition(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.startingAltitude,
