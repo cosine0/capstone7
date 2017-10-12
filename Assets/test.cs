@@ -262,10 +262,23 @@ public class test : MonoBehaviour
 
     void Update()
     {
-        float currentTime = Time.time;
-        float deltaTime = userInfo.lastGpsMeasureTime - currentTime;
-        float newCompass = Input.compass.trueHeading;
+        UpdateBearingWithSmoothing();
+        UpdatePosition();
+        //// Position Update
+        //foreach(ARObject entity in ARObjectList) {
+        //    entity.Update();
+        //}
+    }
 
+    private void UpdateBearingWithSmoothing()
+    {
+        // 방위각
+        //        0:
+        //        북
+        // 270:서    동:90
+        //        남
+        //        :180
+        float newCompass = Input.compass.trueHeading;
         if (Mathf.Abs(newCompass - userInfo.currentBearing) < 180)
         {
             if (Math.Abs(newCompass - userInfo.currentBearing) > Constants.SmoothThresholdCompass)
@@ -287,23 +300,19 @@ public class test : MonoBehaviour
             {
                 if (userInfo.currentBearing > newCompass)
                 {
-                    userInfo.currentBearing = (userInfo.currentBearing + Constants.SmoothFactorCompass * ((360 + newCompass - userInfo.currentBearing) % 360) + 360) % 360;
+                    userInfo.currentBearing = (userInfo.currentBearing + Constants.SmoothFactorCompass * ((360 + newCompass - userInfo.currentBearing) % 360) +
+                                      360) % 360;
                 }
                 else
                 {
-                    userInfo.currentBearing = (userInfo.currentBearing - Constants.SmoothFactorCompass * ((360 - newCompass + userInfo.currentBearing) % 360) + 360) % 360;
+                    userInfo.currentBearing = (userInfo.currentBearing - Constants.SmoothFactorCompass * ((360 - newCompass + userInfo.currentBearing) % 360) +
+                                      360) % 360;
                 }
             }
         }
-
         Vector3 cameraAngle = userInfo.mainCamera.transform.eulerAngles;
         cameraAngle.y = userInfo.currentBearing;
         userInfo.mainCamera.transform.eulerAngles = cameraAngle;
-
-        //// Position Update
-        //foreach(ARObject entity in ARObjectList) {
-        //    entity.Update();
-        //}
     }
 
     Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
@@ -341,15 +350,23 @@ public class test : MonoBehaviour
         return new Vector3(yDifference, 0.0f, xDifference);
     }
 
-    public void UpdatePosition(float lat1, float lon1, float alt1, float lat2, float lon2, float alt2)
+    public void UpdatePosition()
     {
-        var coordinateDifference = CoordinateDifference(lat1, lon1, lat2, lon2);
-        coordinateDifference.y = alt2 - alt1;
+        //        z:
+        //        +
+        //        북
+        // x: -서    동+ :x
+        //        남
+        //        -
+        //        :z
+        // y: 위+
+        //    아래-
+        var coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
+        coordinateDifferenceFromStart.y = userInfo.currentAltitude - userInfo.currentLatitude;
 
-        //set the target position of the ufo, this is where we lerp to in the update function
-        targetPosition = coordinateDifference;
-        //targetPosition = originalPosition - new Vector3(0, 0, distanceFloat * 12);
-        //planeList[0].transform.position = planeRelativePosition - targetPosition;
+        //        mainCamera.transform.position = coordinateDifferenceFromStart;
+
+        userInfo.mainCamera.transform.position = new Vector3(0, 0, -30);
     }
 
     IEnumerator GetGps()
@@ -417,11 +434,6 @@ public class test : MonoBehaviour
                     + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
                     + "\nplane angle: " + ARObjectList[0].GameOBJ.transform.eulerAngles.ToString()
                     + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
-
-                //calculate the distance between where the player was when the app started and where they are now.
-
-                UpdatePosition(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.startingAltitude,
-                    userInfo.currentLatitude, userInfo.currentLongitude, userInfo.currentAltitude);
             }
             Input.location.Stop();
         }
