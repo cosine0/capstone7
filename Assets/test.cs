@@ -38,7 +38,7 @@ public class ADInfo
 public class CommentInfo
 {
     public string id = "";
-    // 날짜, 시간 추가
+    public DateTime dateTime;
     public string comment = "";
 }
 
@@ -101,7 +101,47 @@ abstract public class ARObject
 
     public GameObject GameOBJ;
 
+    public UserInfo userInfo;
+
     public ARObjectType ObjectType;
+
+    public Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
+    {
+        Debug.Log("in DistanceAndBrearing : " + latitude1 + " " + longitude1 + " " + latitude2 + " " + longitude2);
+        const float earthRadiusMeter = 6378137.0f;
+        float radianLatitude1 = latitude1 * Mathf.PI / 180.0f;
+        float radianLatitude2 = latitude2 * Mathf.PI / 180.0f;
+        float latitudeDifference = radianLatitude2 - radianLatitude1;
+
+        float radianLongitude1 = longitude1 * Mathf.PI / 180.0f;
+        float radianLongitude2 = longitude2 * Mathf.PI / 180.0f;
+        float longitudeDifference = radianLongitude2 - radianLongitude1;
+
+        float a = Mathf.Sin(latitudeDifference / 2.0f) * Mathf.Sin(latitudeDifference / 2.0f) +
+                Mathf.Cos(radianLatitude1) * Mathf.Cos(radianLatitude2) *
+                Mathf.Sin(longitudeDifference / 2.0f) * Mathf.Sin(longitudeDifference / 2.0f);
+        float angualrDistance = 2 * Mathf.Atan2(Mathf.Sqrt(a), Mathf.Sqrt(1 - a));
+        float distance = earthRadiusMeter * angualrDistance;
+
+        float y = Mathf.Sin(longitudeDifference) * Mathf.Cos(radianLatitude1);
+        float x = Mathf.Cos(radianLatitude1) * Mathf.Sin(radianLatitude2) -
+                Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
+        float bearing = Mathf.Atan2(y, x);
+
+        return new Vector2(distance, bearing);
+    }
+
+    public Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
+    {
+        Debug.Log("in CoordinateDifference : " + latitude1 + " " + longitude1 + " " + latitude2 + " " + longitude2);
+        Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
+        float distance = distanceBearingVector[0];
+        float bearing = distanceBearingVector[1];
+        float xDifference = distance * Mathf.Cos(bearing);
+        float yDifference = distance * Mathf.Sin(bearing);
+        Debug.Log("Distance : " + distance + " bearing : " + bearing);
+        return new Vector3(yDifference, 0.0f, xDifference);
+    }
 
     abstract public void Create();
     abstract public void Update();
@@ -112,9 +152,10 @@ public class ARPlane : ARObject
 {
     public ADInfo AdInfo;
 
-    public ARPlane(ADInfo info)
+    public ARPlane(ADInfo info, UserInfo info2)
     {
         AdInfo = info;
+        userInfo = info2;
         Create();
     }
 
@@ -136,6 +177,7 @@ public class ARPlane : ARObject
     public override void Create()
     {
         // 텍스쳐 생성
+        // StaticCorutine은 처음 호출시 생성되며 수행 이후 파괴되지 않고 필요할때 마다 이용됨.
         StaticCoroutine.DoCoroutine(GetWebTex());
 
         ObjectType = ARObjectType.ADPlane;
@@ -143,7 +185,13 @@ public class ARPlane : ARObject
         GameOBJ.name = AdInfo.name;
 
         // 초기 포지션 설정
-        GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
+        Debug.Log("plane gps info : " + AdInfo.GPSInfo[0] + " " + AdInfo.GPSInfo[1] + " " + AdInfo.GPSInfo[2]);
+        Vector3 tmp = CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
+        //tmp.y = userInfo.currentAltitude - AdInfo.GPSInfo[2];
+        tmp.y = 0.0f;
+
+        GameOBJ.transform.position = tmp + userInfo.mainCamera.transform.position;
+        //GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
         GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
         //GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
@@ -151,8 +199,7 @@ public class ARPlane : ARObject
 
     public override void Update()
     {
-        // position update
-        //planeList[0].transform.position = planeRelativePosition - targetPosition;
+        // position update or animation update
     }
 
     public override void Destroy()
@@ -242,6 +289,11 @@ public class test : MonoBehaviour
         // GPS Coroutine Start
         StartCoroutine(GetGps());
 
+        while (userInfo.setOriginalValues)
+        {
+            new WaitForSeconds(1.0f); //waiting for gps info initialize
+        }
+
         // Create Object List
         ARObjectList = new List<ARObject>();
 
@@ -249,14 +301,14 @@ public class test : MonoBehaviour
         ADInfo tmp_ad_info = new ADInfo
         {
             name = "Google",
-            GPSInfo = new Vector3(126.39394f, 0.0f, 37.26993f),
+            GPSInfo = new Vector3(126.6580f, 37.4507f, 0.0f),
             bearing = 0.0f,
             bannerUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
             sub = "",
             tex = null
         };
 
-        ARObjectList.Add(new ARPlane(tmp_ad_info));
+        ARObjectList.Add(new ARPlane(tmp_ad_info, userInfo));
         /////////////////////////////////////////////////////////////////////////////////////////
     }
 
@@ -264,7 +316,7 @@ public class test : MonoBehaviour
     {
         UpdateBearingWithSmoothing();
         UpdatePosition();
-        //// Position Update
+        //// ARObject Update (animation)
         //foreach(ARObject entity in ARObjectList) {
         //    entity.Update();
         //}
@@ -361,12 +413,13 @@ public class test : MonoBehaviour
         //        :z
         // y: 위+
         //    아래-
-        var coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
-        coordinateDifferenceFromStart.y = userInfo.currentAltitude - userInfo.currentLatitude;
+        Vector3 coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
+        //coordinateDifferenceFromStart.y = userInfo.currentAltitude - userInfo.currentLatitude;
 
         //        mainCamera.transform.position = coordinateDifferenceFromStart;
 
-        userInfo.mainCamera.transform.position = new Vector3(0, 0, -30);
+        userInfo.mainCamera.transform.position = coordinateDifferenceFromStart;
+        //userInfo.mainCamera.transform.position = new Vector3(0, 0, -30);
     }
 
     IEnumerator GetGps()
@@ -432,7 +485,8 @@ public class test : MonoBehaviour
                 tb.GetComponent<Text>().text =
                     "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " + userInfo.startingAltitude
                     + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
-                    + "\nplane angle: " + ARObjectList[0].GameOBJ.transform.eulerAngles.ToString()
+                    + "\nplane position: " + ARObjectList[0].GameOBJ.transform.position.ToString()
+                    + "\ncamera position: " + userInfo.mainCamera.transform.position
                     + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
             }
             Input.location.Stop();
