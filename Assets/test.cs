@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
@@ -23,6 +21,43 @@ static class Constants
 {
     public const float SmoothFactorCompass = 0.125f;
     public const float SmoothThresholdCompass = 45.0f;
+}
+
+static class GPSCalulator{
+    static public Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
+    {
+        const float earthRadiusMeter = 6378137.0f;
+        float radianLatitude1 = latitude1 * Mathf.PI / 180.0f;
+        float radianLatitude2 = latitude2 * Mathf.PI / 180.0f;
+        float latitudeDifference = radianLatitude2 - radianLatitude1;
+
+        float radianLongitude1 = longitude1 * Mathf.PI / 180.0f;
+        float radianLongitude2 = longitude2 * Mathf.PI / 180.0f;
+        float longitudeDifference = radianLongitude2 - radianLongitude1;
+
+        float a = Mathf.Sin(latitudeDifference / 2.0f) * Mathf.Sin(latitudeDifference / 2.0f) +
+                Mathf.Cos(radianLatitude1) * Mathf.Cos(radianLatitude2) *
+                Mathf.Sin(longitudeDifference / 2.0f) * Mathf.Sin(longitudeDifference / 2.0f);
+        float angualrDistance = 2 * Mathf.Atan2(Mathf.Sqrt(a), Mathf.Sqrt(1 - a));
+        float distance = earthRadiusMeter * angualrDistance;
+
+        float y = Mathf.Sin(longitudeDifference) * Mathf.Cos(radianLatitude1);
+        float x = Mathf.Cos(radianLatitude1) * Mathf.Sin(radianLatitude2) -
+                Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
+        float bearing = Mathf.Atan2(y, x);
+
+        return new Vector2(distance, bearing);
+    }
+
+    static public Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
+    {
+        Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
+        float distance = distanceBearingVector[0];
+        float bearing = distanceBearingVector[1];
+        float xDifference = distance * Mathf.Cos(bearing);
+        float yDifference = distance * Mathf.Sin(bearing);
+        return new Vector3(yDifference, 0.0f, xDifference);
+    }
 }
 
 public class ADInfo
@@ -105,44 +140,6 @@ abstract public class ARObject
 
     public ARObjectType ObjectType;
 
-    public Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
-    {
-        Debug.Log("in DistanceAndBrearing : " + latitude1 + " " + longitude1 + " " + latitude2 + " " + longitude2);
-        const float earthRadiusMeter = 6378137.0f;
-        float radianLatitude1 = latitude1 * Mathf.PI / 180.0f;
-        float radianLatitude2 = latitude2 * Mathf.PI / 180.0f;
-        float latitudeDifference = radianLatitude2 - radianLatitude1;
-
-        float radianLongitude1 = longitude1 * Mathf.PI / 180.0f;
-        float radianLongitude2 = longitude2 * Mathf.PI / 180.0f;
-        float longitudeDifference = radianLongitude2 - radianLongitude1;
-
-        float a = Mathf.Sin(latitudeDifference / 2.0f) * Mathf.Sin(latitudeDifference / 2.0f) +
-                Mathf.Cos(radianLatitude1) * Mathf.Cos(radianLatitude2) *
-                Mathf.Sin(longitudeDifference / 2.0f) * Mathf.Sin(longitudeDifference / 2.0f);
-        float angualrDistance = 2 * Mathf.Atan2(Mathf.Sqrt(a), Mathf.Sqrt(1 - a));
-        float distance = earthRadiusMeter * angualrDistance;
-
-        float y = Mathf.Sin(longitudeDifference) * Mathf.Cos(radianLatitude1);
-        float x = Mathf.Cos(radianLatitude1) * Mathf.Sin(radianLatitude2) -
-                Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
-        float bearing = Mathf.Atan2(y, x);
-
-        return new Vector2(distance, bearing);
-    }
-
-    public Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
-    {
-        Debug.Log("in CoordinateDifference : " + latitude1 + " " + longitude1 + " " + latitude2 + " " + longitude2);
-        Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
-        float distance = distanceBearingVector[0];
-        float bearing = distanceBearingVector[1];
-        float xDifference = distance * Mathf.Cos(bearing);
-        float yDifference = distance * Mathf.Sin(bearing);
-        Debug.Log("Distance : " + distance + " bearing : " + bearing);
-        return new Vector3(yDifference, 0.0f, xDifference);
-    }
-
     abstract public void Create();
     abstract public void Update();
     abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
@@ -181,11 +178,11 @@ public class ARPlane : ARObject
         GameOBJ.name = AdInfo.name;
 
 
-        yield return new WaitUntil(() => (userInfo.setOriginalValues == false));
+        yield return new WaitUntil(() => (userInfo.setOriginalValues == false)); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
         // 초기 포지션 설정
         Debug.Log("plane gps info : " + AdInfo.GPSInfo[0] + " " + AdInfo.GPSInfo[1] + " " + AdInfo.GPSInfo[2]);
-        Vector3 tmp = CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
+        Vector3 tmp = GPSCalulator.CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
         //tmp.y = userInfo.currentAltitude - AdInfo.GPSInfo[2];
         tmp.y = userInfo.currentAltitude - userInfo.currentAltitude;
 
@@ -369,41 +366,6 @@ public class test : MonoBehaviour
         userInfo.mainCamera.transform.eulerAngles = cameraAngle;
     }
 
-    Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
-    {
-        const float earthRadiusMeter = 6378137.0f;
-        var radianLatitude1 = latitude1 * Mathf.PI / 180.0f;
-        var radianLatitude2 = latitude2 * Mathf.PI / 180.0f;
-        var latitudeDifference = radianLatitude2 - radianLatitude1;
-
-        var radianLongitude1 = longitude1 * Mathf.PI / 180.0f;
-        var radianLongitude2 = longitude2 * Mathf.PI / 180.0f;
-        var longitudeDifference = radianLongitude2 - radianLongitude1;
-
-        var a = Mathf.Sin(latitudeDifference / 2.0f) * Mathf.Sin(latitudeDifference / 2.0f) +
-                Mathf.Cos(radianLatitude1) * Mathf.Cos(radianLatitude2) *
-                Mathf.Sin(longitudeDifference / 2.0f) * Mathf.Sin(longitudeDifference / 2.0f);
-        var angualrDistance = 2 * Mathf.Atan2(Mathf.Sqrt(a), Mathf.Sqrt(1 - a));
-        var distance = earthRadiusMeter * angualrDistance;
-
-        var y = Mathf.Sin(longitudeDifference) * Mathf.Cos(radianLatitude1);
-        var x = Mathf.Cos(radianLatitude1) * Mathf.Sin(radianLatitude2) -
-                Mathf.Sin(radianLatitude1) * Mathf.Cos(radianLatitude2) * Mathf.Cos(longitudeDifference);
-        var bearing = Mathf.Atan2(y, x);
-
-        return new Vector2(distance, bearing);
-    }
-
-    Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
-    {
-        var distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
-        var distance = distanceBearingVector[0];
-        var bearing = distanceBearingVector[1];
-        var xDifference = distance * Mathf.Cos(bearing);
-        var yDifference = distance * Mathf.Sin(bearing);
-        return new Vector3(yDifference, 0.0f, xDifference);
-    }
-
     public void UpdatePosition()
     {
         //        z:
@@ -415,7 +377,7 @@ public class test : MonoBehaviour
         //        :z
         // y: 위+
         //    아래-
-        Vector3 coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
+        Vector3 coordinateDifferenceFromStart = GPSCalulator.CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
         //coordinateDifferenceFromStart.y = userInfo.currentAltitude - userInfo.currentLatitude;
 
         //        mainCamera.transform.position = coordinateDifferenceFromStart;
