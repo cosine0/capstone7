@@ -174,27 +174,34 @@ public class ARPlane : ARObject
         GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
     }
 
-    public override void Create()
+    IEnumerator CreateObject()
     {
-        // 텍스쳐 생성
-        // StaticCorutine은 처음 호출시 생성되며 수행 이후 파괴되지 않고 필요할때 마다 이용됨.
-        StaticCoroutine.DoCoroutine(GetWebTex());
-
         ObjectType = ARObjectType.ADPlane;
         GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameOBJ.name = AdInfo.name;
+
+
+        yield return new WaitUntil(() => (userInfo.setOriginalValues == false));
 
         // 초기 포지션 설정
         Debug.Log("plane gps info : " + AdInfo.GPSInfo[0] + " " + AdInfo.GPSInfo[1] + " " + AdInfo.GPSInfo[2]);
         Vector3 tmp = CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
         //tmp.y = userInfo.currentAltitude - AdInfo.GPSInfo[2];
-        tmp.y = 0.0f;
+        tmp.y = userInfo.currentAltitude - userInfo.currentAltitude;
 
         GameOBJ.transform.position = tmp + userInfo.mainCamera.transform.position;
         //GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
         GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
         //GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+    }
+
+    public override void Create()
+    {
+        // 텍스쳐 생성
+        // StaticCorutine은 처음 호출시 생성되며 수행 이후 파괴되지 않고 필요할때 마다 이용됨.
+        StaticCoroutine.DoCoroutine(GetWebTex());
+        StaticCoroutine.DoCoroutine(CreateObject());
     }
 
     public override void Update()
@@ -289,11 +296,6 @@ public class test : MonoBehaviour
         // GPS Coroutine Start
         StartCoroutine(GetGps());
 
-        while (userInfo.setOriginalValues)
-        {
-            new WaitForSeconds(1.0f); //waiting for gps info initialize
-        }
-
         // Create Object List
         ARObjectList = new List<ARObject>();
 
@@ -301,7 +303,7 @@ public class test : MonoBehaviour
         ADInfo tmp_ad_info = new ADInfo
         {
             name = "Google",
-            GPSInfo = new Vector3(126.6580f, 37.4507f, 0.0f),
+            GPSInfo = new Vector3(37.4507f, 126.6580f, 0.0f),
             bearing = 0.0f,
             bannerUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
             sub = "",
@@ -483,8 +485,8 @@ public class test : MonoBehaviour
 
                 // print debug info
                 tb.GetComponent<Text>().text =
-                    "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " + userInfo.startingAltitude
-                    + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
+                    "Origin: " + userInfo.startingLatitude + ", " + userInfo.startingLongitude + ", " + userInfo.startingAltitude
+                    + "\nGPS: " + userInfo.currentLatitude + ", " + userInfo.currentLongitude + ", " + userInfo.currentAltitude
                     + "\nplane position: " + ARObjectList[0].GameOBJ.transform.position.ToString()
                     + "\ncamera position: " + userInfo.mainCamera.transform.position
                     + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
