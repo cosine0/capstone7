@@ -392,14 +392,15 @@ public class test : MonoBehaviour
         return new Vector2(distance, bearing);
     }
 
-    Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
+    Vector3 CoordinateDifference(float latitude1, float longitude1, float altitude1, float latitude2, float longitude2, float altitude2)
     {
         var distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
         var distance = distanceBearingVector[0];
         var bearing = distanceBearingVector[1];
-        var xDifference = distance * Mathf.Cos(bearing);
-        var yDifference = distance * Mathf.Sin(bearing);
-        return new Vector3(yDifference, 0.0f, xDifference);
+        var northDifference = distance * Mathf.Cos(bearing);
+        var eastDifference = distance * Mathf.Sin(bearing);
+        var heightDifference = altitude2 - altitude1;
+        return new Vector3(eastDifference, heightDifference, northDifference);
     }
 
     public void UpdatePosition()
@@ -413,7 +414,7 @@ public class test : MonoBehaviour
         //        :z
         // y: 위+
         //    아래-
-        Vector3 coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.currentLatitude, userInfo.currentLongitude);
+        Vector3 coordinateDifferenceFromStart = CoordinateDifference(userInfo.startingLatitude, userInfo.startingLongitude, userInfo.startingAltitude, userInfo.currentLatitude, userInfo.currentLongitude, userInfo.currentAltitude);
         //coordinateDifferenceFromStart.y = userInfo.currentAltitude - userInfo.currentLatitude;
 
         //        mainCamera.transform.position = coordinateDifferenceFromStart;
