@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml.Schema;
+using System.Threading; 
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
@@ -131,16 +130,15 @@ abstract public class ARObject
         return new Vector2(distance, bearing);
     }
 
-    public Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
+    public Vector3 CoordinateDifference(float latitude1, float longitude1, float altitude1, float latitude2, float longitude2, float altitude2)
     {
-        Debug.Log("in CoordinateDifference : " + latitude1 + " " + longitude1 + " " + latitude2 + " " + longitude2);
-        Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
-        float distance = distanceBearingVector[0];
-        float bearing = distanceBearingVector[1];
-        float xDifference = distance * Mathf.Cos(bearing);
-        float yDifference = distance * Mathf.Sin(bearing);
-        Debug.Log("Distance : " + distance + " bearing : " + bearing);
-        return new Vector3(yDifference, 0.0f, xDifference);
+        var distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
+        var distance = distanceBearingVector[0];
+        var bearing = distanceBearingVector[1];
+        var northDifference = distance * Mathf.Cos(bearing);
+        var eastDifference = distance * Mathf.Sin(bearing);
+        var heightDifference = altitude2 - altitude1;
+        return new Vector3(eastDifference, heightDifference, northDifference);
     }
 
     abstract public void Create();
@@ -186,7 +184,7 @@ public class ARPlane : ARObject
 
         // 초기 포지션 설정
         Debug.Log("plane gps info : " + AdInfo.GPSInfo[0] + " " + AdInfo.GPSInfo[1] + " " + AdInfo.GPSInfo[2]);
-        Vector3 tmp = CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
+        Vector3 tmp = CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, userInfo.currentAltitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1], AdInfo.GPSInfo[3]);
         //tmp.y = userInfo.currentAltitude - AdInfo.GPSInfo[2];
         tmp.y = 0.0f;
 
@@ -291,7 +289,7 @@ public class test : MonoBehaviour
 
         while (userInfo.setOriginalValues)
         {
-            new WaitForSeconds(1.0f); //waiting for gps info initialize
+            Thread.Sleep(100);
         }
 
         // Create Object List
@@ -473,22 +471,26 @@ public class test : MonoBehaviour
                     Debug.Log("startingBearing : " + userInfo.startingBearing);
                     userInfo.setOriginalValues = false;
                 }
+                else
+                {
+                    //overwrite current lat and lon everytime
+                    userInfo.lastGpsMeasureTime = Time.time;
 
-                //overwrite current lat and lon everytime
-                userInfo.lastGpsMeasureTime = Time.time;
+                    userInfo.currentLatitude = Input.location.lastData.latitude;
+                    userInfo.currentLongitude = Input.location.lastData.longitude;
+                    userInfo.currentAltitude = Input.location.lastData.altitude;
+                    userInfo.currentBearing = Input.compass.trueHeading;
 
-                userInfo.currentLatitude = Input.location.lastData.latitude;
-                userInfo.currentLongitude = Input.location.lastData.longitude;
-                userInfo.currentAltitude = Input.location.lastData.altitude;
-                userInfo.currentBearing = Input.compass.trueHeading;
-
-                // print debug info
-                tb.GetComponent<Text>().text =
-                    "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " + userInfo.startingAltitude
-                    + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " + userInfo.currentAltitude
-                    + "\nplane position: " + ARObjectList[0].GameOBJ.transform.position.ToString()
-                    + "\ncamera position: " + userInfo.mainCamera.transform.position
-                    + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
+                    // print debug info
+                    tb.GetComponent<Text>().text =
+                        "Origin: " + userInfo.startingLongitude + ", " + userInfo.startingLatitude + ", " +
+                        userInfo.startingAltitude
+                        + "\nGPS: " + userInfo.currentLongitude + ", " + userInfo.currentLatitude + ", " +
+                        userInfo.currentAltitude
+                        + "\nplane position: " + ARObjectList[0].GameOBJ.transform.position.ToString()
+                        + "\ncamera position: " + userInfo.mainCamera.transform.position
+                        + "\ncamera angle: " + userInfo.mainCamera.transform.eulerAngles;
+                }
             }
             Input.location.Stop();
         }
