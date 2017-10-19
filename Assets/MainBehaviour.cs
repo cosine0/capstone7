@@ -34,9 +34,9 @@ public class MainBehaviour : MonoBehaviour
             Name = "Google",
             GpsInfo = new Vector3(37.4507f, 126.6580f, 0.0f),
             Bearing = 0.0f,
-            BannerUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
-            Sub = "",
-            Tex = null
+            TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+            TextureAlternateText = "",
+            AdTexture = null
         };
 
         _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
@@ -92,9 +92,9 @@ public class MainBehaviour : MonoBehaviour
                 }
             }
         }
-        Vector3 cameraAngle = _userInfo.MainCamera.transform.eulerAngles;
-        cameraAngle.y = _userInfo.CurrentBearing;
-        _userInfo.MainCamera.transform.eulerAngles = cameraAngle;
+        Vector3 newCameraAngle = _userInfo.MainCamera.transform.eulerAngles;
+        newCameraAngle.y = _userInfo.CurrentBearing;
+        _userInfo.MainCamera.transform.eulerAngles = newCameraAngle;
     }
 
     private void UpdatePosition()
