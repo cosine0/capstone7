@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-static class GPSCalulator
+static class GpsCalulator
 {
-    static public Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
+    private static Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
     {
         const float earthRadiusMeter = 6378137.0f;
         float radianLatitude1 = latitude1 * Mathf.PI / 180.0f;
@@ -27,13 +27,14 @@ static class GPSCalulator
         return new Vector2(distance, bearing);
     }
 
-    static public Vector3 CoordinateDifference(float latitude1, float longitude1, float latitude2, float longitude2)
+    public static Vector3 CoordinateDifference(float latitude1, float longitude1, float altitude1, float latitude2, float longitude2, float altitude2)
     {
         Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
         float distance = distanceBearingVector[0];
         float bearing = distanceBearingVector[1];
-        float xDifference = distance * Mathf.Cos(bearing);
-        float yDifference = distance * Mathf.Sin(bearing);
-        return new Vector3(yDifference, 0.0f, xDifference);
+        float northDifference = distance * Mathf.Cos(bearing);
+        float eastDifference = distance * Mathf.Sin(bearing);
+        float heightDifference = altitude2 - altitude1;
+        return new Vector3(eastDifference, heightDifference, northDifference);
     }
 }

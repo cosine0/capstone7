@@ -3,88 +3,86 @@ using System;
 using System.Collections;
 using UnityEngine.Networking;
 
-public class ADInfo
+public class AdInfo
 {
-    public string name = "";
-    public Vector3 GPSInfo;
-    public float bearing = 0.0f;
-    public string bannerUrl = "";
-    public string sub = "";
-    public Texture tex = null;
+    public string Name = "";
+    public Vector3 GpsInfo;
+    public float Bearing = 0.0f;
+    public string BannerUrl = "";
+    public string Sub = "";
+    public Texture Tex = null;
 };
 
 public class CommentInfo
 {
-    public string id = "";
-    public DateTime dateTime;
-    public string comment = "";
+    public string Id = "";
+    public DateTime DateTime;
+    public string Comment = "";
 }
 
 // abstract ARObject
-abstract public class ARObject
+public abstract class ArObject
 {
-    public enum ARObjectType : int { ARObjectError = 0, ADPlane, ARComment };
+    public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
 
-    public GameObject GameOBJ;
+    public GameObject GameObj;
 
-    public UserInfo userInfo;
+    public UserInfo UserInfoObj;
 
-    public ARObjectType ObjectType;
+    public ArObjectType ObjectType;
 
     abstract public void Create();
     abstract public void Update();
     abstract public void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
 };
 
-public class ARPlane : ARObject
+public class ArPlane : ArObject
 {
-    public ADInfo AdInfo;
+    public AdInfo Info;
 
-    public ARPlane(ADInfo info, UserInfo info2)
+    public ArPlane(AdInfo info, UserInfo info2)
     {
-        AdInfo = info;
-        userInfo = info2;
+        Info = info;
+        UserInfoObj = info2;
         Create();
     }
 
-    IEnumerator GetWebTex()
+    private IEnumerator GetWebTex()
     {
-        Texture tmpTexture;
-
-        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(AdInfo.bannerUrl);
-        Debug.Log(AdInfo.name + " Request to server!");
+        UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(Info.BannerUrl);
+        Debug.Log(Info.Name + " Request to server!");
         yield return textureWebRequest.Send();
 
-        Debug.Log(AdInfo.name + " Create Texture!");
-        tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
-        Debug.Log(AdInfo.name + "GetWeb " + tmpTexture.GetInstanceID());
+        Debug.Log(Info.Name + " Create Texture!");
+        Texture tmpTexture = DownloadHandlerTexture.GetContent(textureWebRequest);
+        Debug.Log(Info.Name + "GetWeb " + tmpTexture.GetInstanceID());
 
-        GameOBJ.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
+        GameObj.GetComponent<MeshRenderer>().material.mainTexture = tmpTexture;
     }
 
-    IEnumerator CreateObject()
+    private IEnumerator CreateObject()
     {
-        ObjectType = ARObjectType.ADPlane;
-        GameOBJ = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        GameOBJ.name = AdInfo.name;
+        ObjectType = ArObjectType.AdPlane;
+        GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        GameObj.name = Info.Name;
 
 
-        yield return new WaitUntil(() => (userInfo.setOriginalValues == false)); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
+        yield return new WaitUntil(() => (UserInfoObj.OriginalValuesSet == true)); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
         // 초기 포지션 설정
-        Debug.Log("plane gps info : " + AdInfo.GPSInfo[0] + " " + AdInfo.GPSInfo[1] + " " + AdInfo.GPSInfo[2]);
-        Vector3 tmp = GPSCalulator.CoordinateDifference(userInfo.currentLatitude, userInfo.currentLongitude, AdInfo.GPSInfo[0], AdInfo.GPSInfo[1]);
-        //tmp.y = userInfo.currentAltitude - AdInfo.GPSInfo[2];
-        tmp.y = userInfo.currentAltitude - userInfo.currentAltitude;
+        Debug.Log("plane gps info : " + Info.GpsInfo[0] + " " + Info.GpsInfo[1] + " " + Info.GpsInfo[2]);
+        Vector3 tmp = GpsCalulator.CoordinateDifference(UserInfoObj.CurrentLatitude, UserInfoObj.CurrentLongitude, UserInfoObj.CurrentAltitude, Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
+        //tmp.y = UserInfoObj.currentAltitude - Info.GPSInfo[2];
+        tmp.y = UserInfoObj.CurrentAltitude - UserInfoObj.CurrentAltitude;
 
-        GameOBJ.transform.position = tmp + userInfo.mainCamera.transform.position;
+        GameObj.transform.position = tmp + UserInfoObj.MainCamera.transform.position;
         //GameOBJ.transform.position = new Vector3(0.0f, 0.0f, 30.0f);
-        GameOBJ.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        GameObj.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
         //GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }
 
-    public override void Create()
+    public sealed override void Create()
     {
         // 텍스쳐 생성
         // StaticCorutine은 처음 호출시 생성되며 수행 이후 파괴되지 않고 필요할때 마다 이용됨.
@@ -99,21 +97,17 @@ public class ARPlane : ARObject
 
     public override void Destroy()
     {
-        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
-        GameOBJ = null;
-        AdInfo = null;
+        MonoBehaviour.Destroy(GameObj); // object 제거, Null ptr 설정
+        GameObj = null;
+        Info = null;
     }
 }
 
-public class ARComment : ARObject
+public class ArComment : ArObject
 {
-    public CommentInfo Comment
-    {
-        get { return Comment; }
-        set { Comment = value; }
-    }
+    public CommentInfo Comment { get; set; }
 
-    public ARComment(CommentInfo info)
+    public ArComment(CommentInfo info)
     {
         Comment = info;
     }
@@ -121,7 +115,7 @@ public class ARComment : ARObject
     public override void Create()
     {
         // Mesh Type Definition
-        ObjectType = ARObjectType.ARComment;
+        ObjectType = ArObjectType.ArComment;
     }
 
     public override void Update()
@@ -132,8 +126,8 @@ public class ARComment : ARObject
 
     public override void Destroy()
     {
-        MonoBehaviour.Destroy(GameOBJ); // object 제거, Null ptr 설정
-        GameOBJ = null;
+        MonoBehaviour.Destroy(GameObj); // object 제거, Null ptr 설정
+        GameObj = null;
         Comment = null;
     }
 }

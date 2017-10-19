@@ -2,18 +2,18 @@
 
 public class UserInfo
 {
-    public bool setOriginalValues = true;
+    public bool OriginalValuesSet = false;
 
-    public float startingBearing = 0.0f;
-    public float startingLatitude = 0.0f;
-    public float startingLongitude = 0.0f;
-    public float startingAltitude = 0.0f;
+    public float StartingBearing = 0.0f;
+    public float StartingLatitude = 0.0f;
+    public float StartingLongitude = 0.0f;
+    public float StartingAltitude = 0.0f;
 
-    public float currentBearing = 0.0f;
-    public float currentLatitude = 0.0f;
-    public float currentLongitude = 0.0f;
-    public float currentAltitude = 0.0f;
-    public float lastGpsMeasureTime = 0.0f;
+    public float CurrentBearing = 0.0f;
+    public float CurrentLatitude = 0.0f;
+    public float CurrentLongitude = 0.0f;
+    public float CurrentAltitude = 0.0f;
+    public float LastGpsMeasureTime = 0.0f;
 
-    public GameObject mainCamera = null;
+    public GameObject MainCamera = null;
 }

@@ -3,33 +3,33 @@ using System.Collections;
 
 public class StaticCoroutine : MonoBehaviour
 {
-    private static StaticCoroutine mInstance = null;
-    private static StaticCoroutine instance
+    private static StaticCoroutine _instance = null;
+    private static StaticCoroutine Instance
     {
         get
         {
-            if (mInstance == null)
+            if (_instance == null)
             {
-                mInstance = GameObject.FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
+                _instance = FindObjectOfType(typeof(StaticCoroutine)) as StaticCoroutine;
 
-                if (mInstance == null)
+                if (_instance == null)
                 {
-                    mInstance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
+                    _instance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
                 }
             }
-            return mInstance;
+            return _instance;
         }
     }
 
-    void Awake()
+    private void Awake()
     {
-        if (mInstance == null)
+        if (_instance == null)
         {
-            mInstance = this as StaticCoroutine;
+            _instance = this;
         }
     }
 
-    IEnumerator Perform(IEnumerator coroutine)
+    private IEnumerator Perform(IEnumerator coroutine)
     {
         yield return StartCoroutine(coroutine);
         //Die();
@@ -38,17 +38,17 @@ public class StaticCoroutine : MonoBehaviour
     public static void DoCoroutine(IEnumerator coroutine)
     {
         //actually this point will be start coroutine
-        instance.StartCoroutine(instance.Perform(coroutine));
+        Instance.StartCoroutine(Instance.Perform(coroutine));
     }
 
-    void Die()
+    private void Die()
     {
-        mInstance = null;
+        _instance = null;
         Destroy(gameObject);
     }
 
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
-        mInstance = null;
+        _instance = null;
     }
 }
