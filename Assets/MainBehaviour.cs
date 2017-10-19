@@ -44,15 +44,15 @@ public class MainBehaviour : MonoBehaviour
 
     private void Update()
     {
-        UpdateBearingWithSmoothing();
-        UpdatePosition();
+        UpdateCameraBearing();
+        UpdateCameraPosition();
         //// ARObject Update (animation)
         //foreach(ARObject entity in ARObjectList) {
         //    entity.Update();
         //}
     }
 
-    private void UpdateBearingWithSmoothing()
+    private void UpdateCameraBearing()
     {
         // 방위각
         //          0.0:
@@ -97,7 +97,7 @@ public class MainBehaviour : MonoBehaviour
         _userInfo.MainCamera.transform.eulerAngles = newCameraAngle;
     }
 
-    private void UpdatePosition()
+    private void UpdateCameraPosition()
     {
         //        z:
         //        +
