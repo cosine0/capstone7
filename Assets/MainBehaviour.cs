@@ -28,24 +28,67 @@ public class MainBehaviour : MonoBehaviour
         // AR 오브젝트 리스트 생성
         _arObjectList = new List<ArObject>();
 
-        // 테스트용 플레인
+        // 테스트용 플레인 생성
+        StartCoroutine(CreateTestPlanes());
+    }
+
+    private IEnumerator CreateTestPlanes()
+    {
+        const float gpsInterval = 0.00001f;
+        const float gpsPrecision = 100000f;
+        if (!_userInfo.OriginalValuesSet)
+            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
+
         AdInfo tmpAdInfo = new AdInfo
         {
             Name = "Google",
-            GpsInfo = new Vector3(37.4507f, 126.6580f, 0.0f),
+            GpsInfo = new Vector3(_userInfo.CurrentLatitude + gpsInterval, _userInfo.CurrentLongitude, _userInfo.CurrentAltitude),
             Bearing = 0.0f,
             TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
             TextureAlternateText = "",
             AdTexture = null
         };
-
         _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+//        var roundedLat = Mathf.Round(_userInfo.CurrentLatitude * gpsPrecision) / gpsPrecision;
+//        var roundedLon = Mathf.Round(_userInfo.CurrentLongitude * gpsPrecision) / gpsPrecision;
+//        var roundedAlt = Mathf.Round(_userInfo.CurrentAltitude * gpsPrecision) / gpsPrecision;
+
+//        for (var latDiff = -5; latDiff < 5; latDiff++)
+//        {
+//            for (var lonDiff = -5; lonDiff < 5; lonDiff++)
+//            {
+//                for (var altDiff = -2; altDiff < 2; altDiff++)
+//                {
+//                    Debug.Log("In loop " + latDiff + " " + lonDiff + " " + altDiff);
+//                    var plainInfo = new AdInfo
+//                    {
+//                        Name = "plain",
+//                        Bearing = 0.0f,
+//                        GpsInfo = new Vector3(
+//                            roundedLat + latDiff * gpsInterval,
+//                            roundedLon + lonDiff * gpsInterval,
+//                            roundedAlt + altDiff * gpsInterval),
+//                        TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg"
+//                    };
+//                    _arObjectList.Add(new ArPlane(plainInfo, _userInfo));
+//                }
+//            }
+//        }
     }
 
     private void Update()
     {
         UpdateCameraBearing();
         UpdateCameraPosition();
+
+        // 위치 정보 출력 (디버그)
+        TextBox.GetComponent<Text>().text =
+            "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
+            + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
+            + "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
+            + "\ncamera position: " + _userInfo.MainCamera.transform.position
+            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles;
+
         //// ARObject Update (animation)
         //foreach(ARObject entity in ARObjectList) {
         //    entity.Update();
@@ -110,7 +153,7 @@ public class MainBehaviour : MonoBehaviour
         //    아래-
         Vector3 coordinateDifferenceFromStart = GpsCalulator.CoordinateDifference(
             _userInfo.StartingLatitude, _userInfo.StartingLongitude, _userInfo.StartingAltitude,
-            _userInfo.CurrentLatitude, _userInfo.CurrentLongitude, _userInfo.CurrentBearing);
+            _userInfo.CurrentLatitude, _userInfo.CurrentLongitude, _userInfo.StartingAltitude);
 
         _userInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
     }
@@ -166,14 +209,6 @@ public class MainBehaviour : MonoBehaviour
 
                 _userInfo.OriginalValuesSet = true;
             }
-
-            // 위치 정보 출력 (디버그)
-            TextBox.GetComponent<Text>().text =
-                "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
-                + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
-                + "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
-                + "\ncamera position: " + _userInfo.MainCamera.transform.position
-                + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles;
             Input.location.Stop();
         }
     }
