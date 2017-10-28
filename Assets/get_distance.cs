@@ -18,15 +18,15 @@ public class get_distance : MonoBehaviour
         //insert data to table
         WWWForm form = new WWWForm();
 
-        string latitude = "37.450670";
-        string longitude = "126.656895";
-        string altitude = "123.123";
+        string currlati = "37.450670";
+        string currlong = "126.656895";
+        string curralti = "123.123";
 
-        form.AddField("latitude", latitude);
-        form.AddField("longitude", longitude);
-        form.AddField("altitude", altitude);
+        form.AddField("currlati", currlati);
+        form.AddField("currlong", currlong);
+        form.AddField("curralti", curralti);
 
-        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/main/getGPS_distance.php", form))
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
         {
             www.SetRequestHeader("Content-Type", "application/json");
             yield return www.Send();
