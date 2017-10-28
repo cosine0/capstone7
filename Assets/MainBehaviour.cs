@@ -5,6 +5,23 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+[System.Serializable]
+public class JsonData
+{
+    public string name;
+    public float latitude;
+    public float longitude;
+    public float altitude;
+    public float bearing;
+    public string banner_url;
+}
+
+[System.Serializable]
+public class JsonDataArray
+{
+    public JsonData[] data;
+}
+
 public class MainBehaviour : MonoBehaviour
 {
     /// <summary>
@@ -30,51 +47,14 @@ public class MainBehaviour : MonoBehaviour
         _arObjectList = new List<ArObject>();
 
         // 테스트용 플레인 생성
-        StartCoroutine(CreateTestPlanes());
+        //StartCoroutine(CreateTestPlanes());
+        StartCoroutine(GetPlaneList());
     }
 
     private IEnumerator CreateTestPlanes()
     {
-        const float gpsInterval = 0.00001f;
-        const float gpsPrecision = 100000f;
         if (!_userInfo.OriginalValuesSet)
             yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
-
-        AdInfo tmpAdInfo = new AdInfo
-        {
-            Name = "Google",
-            GpsInfo = new Vector3(_userInfo.CurrentLatitude + gpsInterval, _userInfo.CurrentLongitude, _userInfo.CurrentAltitude),
-            Bearing = 0.0f,
-            TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
-            TextureAlternateText = "",
-            AdTexture = null
-        };
-        _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
-//        var roundedLat = Mathf.Round(_userInfo.CurrentLatitude * gpsPrecision) / gpsPrecision;
-//        var roundedLon = Mathf.Round(_userInfo.CurrentLongitude * gpsPrecision) / gpsPrecision;
-//        var roundedAlt = Mathf.Round(_userInfo.CurrentAltitude * gpsPrecision) / gpsPrecision;
-
-//        for (var latDiff = -5; latDiff < 5; latDiff++)
-//        {
-//            for (var lonDiff = -5; lonDiff < 5; lonDiff++)
-//            {
-//                for (var altDiff = -2; altDiff < 2; altDiff++)
-//                {
-//                    Debug.Log("In loop " + latDiff + " " + lonDiff + " " + altDiff);
-//                    var plainInfo = new AdInfo
-//                    {
-//                        Name = "plain",
-//                        Bearing = 0.0f,
-//                        GpsInfo = new Vector3(
-//                            roundedLat + latDiff * gpsInterval,
-//                            roundedLon + lonDiff * gpsInterval,
-//                            roundedAlt + altDiff * gpsInterval),
-//                        TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg"
-//                    };
-//                    _arObjectList.Add(new ArPlane(plainInfo, _userInfo));
-//                }
-//            }
-//        }
     }
 
     private void Update()
@@ -219,64 +199,102 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-    //IEnumerator GetPlaneList()
-    //{
-    //    string latitude = _userInfo.CurrentLatitude.ToString();
-    //    string longitude = _userInfo.CurrentLongitude.ToString();
-    //    string altitude = _userInfo.CurrentAltitude.ToString();
+    IEnumerator GetPlaneList()
+    {
+        if (!_userInfo.OriginalValuesSet)
+            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
 
-    //    WWWForm form = new WWWForm();
-    //    form.AddField("latitude", latitude);
-    //    form.AddField("longitude", longitude);
-    //    form.AddField("altitude", altitude);
+        while (true)
+        {
+            // 5초에 한번씩 실행
+            yield return new WaitForSeconds(5.0f);
 
-    //    using (UnityWebRequest www = UnityWebRequest.Post("http://165.246.243.123/main/getGPS.php", form))
-    //    {
-    //        yield return www.Send();
+            string latitude = _userInfo.CurrentLatitude.ToString();
+            string longitude = _userInfo.CurrentLongitude.ToString();
+            string altitude = _userInfo.CurrentAltitude.ToString();
 
-    //        if (www.isNetworkError || www.isHttpError)
-    //        {
-    //            Debug.Log(www.error);
-    //        }
-    //        else
-    //        {
-    //            string fromServText = www.downloadHandler.text;
-    //            char delimiter = ';';
-    //            string[] sranks = fromServText.Split(delimiter);
+            //gps testset
+            //string latitude = "37.450666";
+            //string longitude = "126.656844";
+            //string altitude = "0.000000";
 
-    //            int stringLength = items.Length;
-    
-    //            for (int i = 0; i < stringLength; i++)
-    //            {
-    //                /* item field */
-    //                // name, latitude, longitude, altitude, bearing, bannerurl
-    //                if (items[i].Contains(";"))
-    //                {
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("name:" + items[i] + "\n");
-    //                    i++;
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("latitude:" + items[i] + "\n");
-    //                    i++;
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("longitude:" + items[i] + "\n");
-    //                    i++;
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("altitude:" + items[i] + "\n");
-    //                    i++;
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("bearing:" + items[i] + "\n");
-    //                    i++;
-    //                    items[i].Remove(items[i].IndexOf(";"));
-    //                    Debug.Log("bannerurl:" + items[i] + "\n");
-    //                    i++;
-    //                }
-    //            }
-    //            // Object List 정리
+            WWWForm form = new WWWForm();
+            form.AddField("latitude", latitude);
+            form.AddField("longitude", longitude);
+            form.AddField("altitude", altitude);
 
-    //            // Object List에 추가
+            using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
+            {
+                yield return www.Send();
 
-    //        }
-    //    }
-    //}
+                if (www.isNetworkError || www.isHttpError)
+                {
+                    Debug.Log(www.error);
+                }
+                else
+                {
+                    // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
+                    string fromServJson = www.downloadHandler.text;
+
+                    JsonDataArray DataList = JsonUtility.FromJson<JsonDataArray>(fromServJson);
+
+                    // Object List 정리
+                    for (int i = 0; i < _arObjectList.Count; i++)
+                    {
+                        if (_arObjectList[i].ObjectType == ArObject.ArObjectType.AdPlane)
+                        {
+                            bool flag = false;
+
+                            foreach (JsonData j_entity in DataList.data)
+                            {
+                                if (flag = _arObjectList[i].GameObj.name.Equals(j_entity.name))
+                                {
+                                    break; // 새로 받아온 리스트에 존재 할 경우 넘어감.
+                                }
+                            }
+
+                            if (flag == false)
+                            {
+                                _arObjectList[i].Destroy(); // 새로 받아온 리스트를 조사하여 없는 경우 파괴
+                                _arObjectList.RemoveAt(i); // 리스트에서 제거
+                            }
+                        }
+                    }
+
+                    // Object List에 추가
+                    foreach (JsonData j_entity in DataList.data)
+                    {
+                        bool flag = true;
+
+                        //기존 리스트에 이미 있는 경우 안만듦
+                        foreach (ArObject entity in _arObjectList)
+                        {
+                            if (flag = j_entity.name.Equals(entity.GameObj.name))
+                            {
+                                flag = false;
+                                break;
+                            }
+                        }
+
+                        // 기존 리스트에 없는 경우 새로 생성
+                        if (flag == true)
+                        {
+                            AdInfo tmpAdInfo = new AdInfo
+                            {
+                                Name = j_entity.name,
+                                GpsInfo = new Vector3(j_entity.latitude, j_entity.longitude, j_entity.altitude),
+                                Bearing = j_entity.bearing,
+                                TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+                                TextureAlternateText = "",
+                                AdTexture = null
+                            };
+                            
+                            _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+                        }
+                    }
+                }
+            }
+            Debug.Log("Object Count: " + _arObjectList.Count.ToString());
+        }
+    }
 }
