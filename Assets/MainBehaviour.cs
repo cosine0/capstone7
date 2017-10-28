@@ -32,48 +32,110 @@ public class MainBehaviour : MonoBehaviour
         StartCoroutine(CreateTestPlanes());
     }
 
+    private IEnumerator GetGps()
+    {
+        //while true so this function keeps running once started.
+        while (true)
+        {
+            // check if user has location service enabled
+            if (!Input.location.isEnabledByUser)
+                yield break;
+
+            // Start service before querying location
+            Input.location.Start(1f, .1f);
+            Input.compass.enabled = true;
+
+            // Wait until service initializes
+            int maxWait = 20;
+            while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
+            {
+                yield return new WaitForSeconds(1);
+                maxWait--;
+            }
+
+            // Service didn't initialize in 20 seconds
+            if (maxWait < 1)
+            {
+                Debug.Log("Timed out");
+                yield break;
+            }
+
+            // Connection has failed
+            if (Input.location.status == LocationServiceStatus.Failed)
+            {
+                Debug.Log("Unable to determine device location");
+                yield break;
+            }
+
+            _userInfo.LastGpsMeasureTime = Time.time;
+
+            _userInfo.CurrentLatitude = Input.location.lastData.latitude;
+            _userInfo.CurrentLongitude = Input.location.lastData.longitude;
+            _userInfo.CurrentAltitude = Input.location.lastData.altitude;
+            _userInfo.CurrentBearing = Input.compass.trueHeading;
+
+            if (!_userInfo.OriginalValuesSet)
+            {
+                _userInfo.StartingLatitude = _userInfo.CurrentLatitude;
+                _userInfo.StartingLongitude = _userInfo.CurrentLongitude;
+                _userInfo.StartingAltitude = _userInfo.CurrentAltitude;
+                _userInfo.StartingBearing = _userInfo.CurrentBearing;
+
+                _userInfo.OriginalValuesSet = true;
+            }
+            Input.location.Stop();
+        }
+    }
+
     private IEnumerator CreateTestPlanes()
     {
+        // 약 1미터
         const float gpsInterval = 0.00001f;
         const float gpsPrecision = 100000f;
         if (!_userInfo.OriginalValuesSet)
             yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
 
-        AdInfo tmpAdInfo = new AdInfo
-        {
-            Name = "Google",
-            GpsInfo = new Vector3(_userInfo.CurrentLatitude + gpsInterval, _userInfo.CurrentLongitude, _userInfo.CurrentAltitude),
-            Bearing = 0.0f,
-            TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
-            TextureAlternateText = "",
-            AdTexture = null
-        };
-        _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
-//        var roundedLat = Mathf.Round(_userInfo.CurrentLatitude * gpsPrecision) / gpsPrecision;
-//        var roundedLon = Mathf.Round(_userInfo.CurrentLongitude * gpsPrecision) / gpsPrecision;
-//        var roundedAlt = Mathf.Round(_userInfo.CurrentAltitude * gpsPrecision) / gpsPrecision;
+        var roundedLat = Mathf.Round(_userInfo.CurrentLatitude * gpsPrecision) / gpsPrecision;
+        var roundedLon = Mathf.Round(_userInfo.CurrentLongitude * gpsPrecision) / gpsPrecision;
+        var roundedAlt = Mathf.Round(_userInfo.CurrentAltitude * gpsPrecision) / gpsPrecision;
 
-//        for (var latDiff = -5; latDiff < 5; latDiff++)
-//        {
-//            for (var lonDiff = -5; lonDiff < 5; lonDiff++)
-//            {
-//                for (var altDiff = -2; altDiff < 2; altDiff++)
-//                {
-//                    Debug.Log("In loop " + latDiff + " " + lonDiff + " " + altDiff);
-//                    var plainInfo = new AdInfo
-//                    {
-//                        Name = "plain",
-//                        Bearing = 0.0f,
-//                        GpsInfo = new Vector3(
-//                            roundedLat + latDiff * gpsInterval,
-//                            roundedLon + lonDiff * gpsInterval,
-//                            roundedAlt + altDiff * gpsInterval),
-//                        TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg"
-//                    };
-//                    _arObjectList.Add(new ArPlane(plainInfo, _userInfo));
-//                }
-//            }
-//        }
+        for (var latDiff = -25; latDiff < 25; latDiff += 5)
+        {
+            for (var lonDiff = -25; lonDiff < 25; lonDiff += 5)
+            {
+                for (var altDiff = -10; altDiff < 10; altDiff += 5)
+                {
+                    Debug.Log("In loop " + latDiff + " " + lonDiff + " " + altDiff);
+                    var eulerAngle = new Vector3(0, 0, 0);
+                    if (latDiff < 0)
+                    {
+                        eulerAngle.y = 0f;
+                    }
+                    else if (latDiff == 0)
+                    {
+                        if (lonDiff < 0)
+                            eulerAngle.y = -90f;
+                        else
+                            eulerAngle.y = 90f;
+                    }
+                    else
+                    {
+                        eulerAngle.y = 180f;
+                    }
+                    var plainInfo = new AdInfo
+                    {
+                        Name = "plain_" + latDiff + "_" + lonDiff + "_" + altDiff,
+                        EulerAngle = eulerAngle,
+                        GpsInfo = new Vector3(
+                            roundedLat + latDiff * gpsInterval,
+                            roundedLon + lonDiff * gpsInterval,
+                            roundedAlt + altDiff * gpsInterval),
+                        TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg"
+                    };
+                    _arObjectList.Add(new ArPlane(plainInfo, _userInfo));
+                }
+            }
+        }
     }
 
     private void Update()
@@ -85,7 +147,7 @@ public class MainBehaviour : MonoBehaviour
         TextBox.GetComponent<Text>().text =
             "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
             + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
-            + "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
+            + "\nplane position: " + _arObjectList[0].GameObj.transform.position
             + "\ncamera position: " + _userInfo.MainCamera.transform.position
             + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles;
 
@@ -156,60 +218,5 @@ public class MainBehaviour : MonoBehaviour
             _userInfo.CurrentLatitude, _userInfo.CurrentLongitude, _userInfo.StartingAltitude);
 
         _userInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
-    }
-
-    private IEnumerator GetGps()
-    {
-        //while true so this function keeps running once started.
-        while (true)
-        {
-            // check if user has location service enabled
-            if (!Input.location.isEnabledByUser)
-                yield break;
-
-            // Start service before querying location
-            Input.location.Start(1f, .1f);
-            Input.compass.enabled = true;
-
-            // Wait until service initializes
-            int maxWait = 20;
-            while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
-            {
-                yield return new WaitForSeconds(1);
-                maxWait--;
-            }
-
-            // Service didn't initialize in 20 seconds
-            if (maxWait < 1)
-            {
-                Debug.Log("Timed out");
-                yield break;
-            }
-
-            // Connection has failed
-            if (Input.location.status == LocationServiceStatus.Failed)
-            {
-                Debug.Log("Unable to determine device location");
-                yield break;
-            }
-
-            _userInfo.LastGpsMeasureTime = Time.time;
-
-            _userInfo.CurrentLatitude = Input.location.lastData.latitude;
-            _userInfo.CurrentLongitude = Input.location.lastData.longitude;
-            _userInfo.CurrentAltitude = Input.location.lastData.altitude;
-            _userInfo.CurrentBearing = Input.compass.trueHeading;
-
-            if (!_userInfo.OriginalValuesSet)
-            {
-                _userInfo.StartingLatitude = _userInfo.CurrentLatitude;
-                _userInfo.StartingLongitude = _userInfo.CurrentLongitude;
-                _userInfo.StartingAltitude = _userInfo.CurrentAltitude;
-                _userInfo.StartingBearing = _userInfo.CurrentBearing;
-
-                _userInfo.OriginalValuesSet = true;
-            }
-            Input.location.Stop();
-        }
     }
 }

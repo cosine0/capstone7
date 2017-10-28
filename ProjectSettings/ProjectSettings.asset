@@ -598,12 +598,13 @@ PlayerSettings:
       daydreamIconForeground: {fileID: 0}
       daydreamIconBackground: {fileID: 0}
   cloudServicesEnabled:
-    Collab: 1
+    Collab: 0
+    UNet: 1
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 2
-  cloudProjectId: 5211c7a8-c4bf-4b2c-8245-8c77553ccbbf
-  projectName: capstone7
-  organizationId: beomsu
+  cloudProjectId: 621a97f6-38d5-4ddc-9a23-8f3e89a31447
+  projectName: capstone7 (10)
+  organizationId: yongyong123
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0

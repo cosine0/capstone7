@@ -7,7 +7,7 @@ public class AdInfo
 {
     public string Name = "";
     public Vector3 GpsInfo;
-    public float Bearing = 0.0f;
+    public Vector3 EulerAngle = new Vector3(0, 0, 0);
     public string TextureUrl = null;
     public string TextureAlternateText = "";
     public Texture AdTexture = null;
@@ -71,7 +71,8 @@ public class ArPlane : ArObject
             Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
 
         GameObj.transform.position = unityPosition;
-        GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        GameObj.transform.eulerAngles = new Vector3(90.0f, -90.0f, 90.0f) + Info.EulerAngle; // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        GameObj.transform.localScale *= 0.1f;
         // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }
