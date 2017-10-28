@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 public class MainBehaviour : MonoBehaviour
 {
@@ -143,14 +144,14 @@ public class MainBehaviour : MonoBehaviour
         UpdateCameraBearing();
         UpdateCameraPosition();
 
-        // 위치 정보 출력 (디버그)
+        //위치 정보 출력(디버그)
         TextBox.GetComponent<Text>().text =
             "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
             + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
-            + "\nplane position: " + _arObjectList[0].GameObj.transform.position
             + "\ncamera position: " + _userInfo.MainCamera.transform.position
             + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles;
 
+        //+ "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
         //// ARObject Update (animation)
         //foreach(ARObject entity in ARObjectList) {
         //    entity.Update();
@@ -219,4 +220,125 @@ public class MainBehaviour : MonoBehaviour
 
         _userInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
     }
+
+    private IEnumerator GetGps()
+    {
+        //while true so this function keeps running once started.
+        while (true)
+        {
+            // check if user has location service enabled
+            if (!Input.location.isEnabledByUser)
+                yield break;
+
+            // Start service before querying location
+            Input.location.Start(1f, .1f);
+            Input.compass.enabled = true;
+
+            // Wait until service initializes
+            int maxWait = 20;
+            while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
+            {
+                yield return new WaitForSeconds(1);
+                maxWait--;
+            }
+
+            // Service didn't initialize in 20 seconds
+            if (maxWait < 1)
+            {
+                Debug.Log("Timed out");
+                yield break;
+            }
+
+            // Connection has failed
+            if (Input.location.status == LocationServiceStatus.Failed)
+            {
+                Debug.Log("Unable to determine device location");
+                yield break;
+            }
+
+            _userInfo.LastGpsMeasureTime = Time.time;
+
+            _userInfo.CurrentLatitude = Input.location.lastData.latitude;
+            _userInfo.CurrentLongitude = Input.location.lastData.longitude;
+            _userInfo.CurrentAltitude = Input.location.lastData.altitude;
+            _userInfo.CurrentBearing = Input.compass.trueHeading;
+
+            //StaticCoroutine.DoCoroutine(GetPlaneList());
+            // 아래 두개는 사용자 선택에 따라 렌더링 가능하도록 설정
+            //StaticCoroutine.DoCoroutine(GetCommentList());
+            //StaticCoroutine.DoCoroutine(GetUserObjectList());
+
+            if (!_userInfo.OriginalValuesSet)
+            {
+                _userInfo.StartingLatitude = _userInfo.CurrentLatitude;
+                _userInfo.StartingLongitude = _userInfo.CurrentLongitude;
+                _userInfo.StartingAltitude = _userInfo.CurrentAltitude;
+                _userInfo.StartingBearing = _userInfo.CurrentBearing;
+
+                _userInfo.OriginalValuesSet = true;
+            }
+            Input.location.Stop();
+        }
+    }
+
+    //IEnumerator GetPlaneList()
+    //{
+    //    string latitude = _userInfo.CurrentLatitude.ToString();
+    //    string longitude = _userInfo.CurrentLongitude.ToString();
+    //    string altitude = _userInfo.CurrentAltitude.ToString();
+
+    //    WWWForm form = new WWWForm();
+    //    form.AddField("latitude", latitude);
+    //    form.AddField("longitude", longitude);
+    //    form.AddField("altitude", altitude);
+
+    //    using (UnityWebRequest www = UnityWebRequest.Post("http://165.246.243.123/main/getGPS.php", form))
+    //    {
+    //        yield return www.Send();
+
+    //        if (www.isNetworkError || www.isHttpError)
+    //        {
+    //            Debug.Log(www.error);
+    //        }
+    //        else
+    //        {
+    //            string fromServText = www.downloadHandler.text;
+    //            char delimiter = ';';
+    //            string[] sranks = fromServText.Split(delimiter);
+
+    //            int stringLength = items.Length;
+    
+    //            for (int i = 0; i < stringLength; i++)
+    //            {
+    //                /* item field */
+    //                // name, latitude, longitude, altitude, bearing, bannerurl
+    //                if (items[i].Contains(";"))
+    //                {
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("name:" + items[i] + "\n");
+    //                    i++;
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("latitude:" + items[i] + "\n");
+    //                    i++;
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("longitude:" + items[i] + "\n");
+    //                    i++;
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("altitude:" + items[i] + "\n");
+    //                    i++;
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("bearing:" + items[i] + "\n");
+    //                    i++;
+    //                    items[i].Remove(items[i].IndexOf(";"));
+    //                    Debug.Log("bannerurl:" + items[i] + "\n");
+    //                    i++;
+    //                }
+    //            }
+    //            // Object List 정리
+
+    //            // Object List에 추가
+
+    //        }
+    //    }
+    //}
 }

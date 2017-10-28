@@ -15,6 +15,7 @@ public class StaticCoroutine : MonoBehaviour
                 if (_instance == null)
                 {
                     _instance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
+                    Object.DontDestroyOnLoad(_instance); // scene이 전환되어도 이 객체는 파괴되지 않도록함.
                 }
             }
             return _instance;
