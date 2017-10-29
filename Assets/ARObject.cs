@@ -62,7 +62,6 @@ public class ArPlane : ArObject
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
 
-
         yield return new WaitUntil(() => UserInfoObj.OriginalValuesSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
         // 초기 포지션 설정

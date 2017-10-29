@@ -47,9 +47,11 @@ public class MainBehaviour : MonoBehaviour
         // AR 오브젝트 리스트 생성
         _arObjectList = new List<ArObject>();
 
+        StartCoroutine(GetPlaneList());
+
         // 테스트용 플레인 생성
         //StartCoroutine(CreateTestPlanes());
-        StartCoroutine(GetPlaneList());
+        //StartCoroutine(GetPlaneList());
 
         //test plane
         //AdInfo tmpAdInfo = new AdInfo
@@ -81,7 +83,8 @@ public class MainBehaviour : MonoBehaviour
             "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
             + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
             + "\ncamera position: " + _userInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles;
+            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles
+            + "\nObject Count: " + _arObjectList.Count.ToString();
 
         //+ "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
         //// ARObject Update (animation)
@@ -196,10 +199,6 @@ public class MainBehaviour : MonoBehaviour
             _userInfo.CurrentAltitude = Input.location.lastData.altitude;
             _userInfo.CurrentBearing = Input.compass.trueHeading;
 
-            //StaticCoroutine.DoCoroutine(GetPlaneList());
-            // 아래 두개는 사용자 선택에 따라 렌더링 가능하도록 설정
-            //StaticCoroutine.DoCoroutine(GetCommentList());
-            //StaticCoroutine.DoCoroutine(GetUserObjectList());
 
             // 초기 정보 입력
             if (!_userInfo.OriginalValuesSet)
@@ -223,17 +222,21 @@ public class MainBehaviour : MonoBehaviour
 
         while (true)
         {
-            // 5초에 한번씩 실행
-            yield return new WaitForSeconds(5.0f);
-
             string latitude = _userInfo.CurrentLatitude.ToString();
             string longitude = _userInfo.CurrentLongitude.ToString();
             string altitude = _userInfo.CurrentAltitude.ToString();
 
-            //gps testset
-            //string latitude = "37.450666";
-            //string longitude = "126.656844";
-            //string altitude = "0.000000";
+            //_userInfo.StartingLatitude = 37.270440f;
+            //_userInfo.StartingLongitude = 126.394210f;
+            //_userInfo.StartingAltitude = 53.000000f;
+            //_userInfo.StartingBearing = 13.0f;
+
+            //_userInfo.OriginalValuesSet = true;
+
+            ////gps testset
+            //string latitude = "37.270440";
+            //string longitude = "126.394210";
+            //string altitude = "53.000000";
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
@@ -252,71 +255,86 @@ public class MainBehaviour : MonoBehaviour
                 {
                     // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
                     string fromServJson = www.downloadHandler.text;
-
+                    Debug.Log(fromServJson);
                     JsonDataArray DataList = JsonUtility.FromJson<JsonDataArray>(fromServJson);
 
-                    // Object List 정리
-                    for (int i = 0; i < _arObjectList.Count; i++)
+                    if (DataList.data.Length == 0)
                     {
-                        if (_arObjectList[i].ObjectType == ArObject.ArObjectType.AdPlane)
+                        /*  받아온 리스트에 아무것도 없는 경우 */
+                        for (int i = 0; i < _arObjectList.Count; i++)
                         {
-                            bool flag = false;
-
-                            foreach (JsonData j_entity in DataList.data)
-                            {
-                                if (flag = _arObjectList[i].GameObj.name.Equals(j_entity.name))
-                                {
-                                    break; // 기존리스트에 있는 오브젝트가 새로 받아온 리스트에 존재 할 경우 넘어감.
-                                }
-                            }
-
-                            if (flag == false)
-                            {
-                                _arObjectList[i].Destroy(); // 기존리스트에 있는 오브젝트를 새로 받아온 리스트에서 조사하여 없는 경우 파괴
-                                _arObjectList.RemoveAt(i); // 리스트에서 제거 - 리스트에서 제거시 리스트 연결, index 문제 있을 수 있음. 확인 필요
-                                i--;
-                            }
+                            // List Cleanup
+                            _arObjectList[i].Destroy(); // 기존리스트에 있는 오브젝트를 새로 받아온 리스트에서 조사하여 없는 경우 파괴
+                            _arObjectList.RemoveAt(i); // 리스트에서 제거 - 리스트에서 제거시 리스트 연결, index 문제 있을 수 있음. 확인 필요
+                            i--;
                         }
                     }
-
-                    // Object List에 추가
-                    foreach (JsonData j_entity in DataList.data)
+                    else
                     {
-                        bool flag = true;
-
-                        //기존 리스트에 이미 있는 경우 안만듦
-                        foreach (ArObject entity in _arObjectList)
+                        // Object List 정리
+                        for (int i = 0; i < _arObjectList.Count; i++)
                         {
-                            if (entity.ObjectType == ArObject.ArObjectType.AdPlane) // 리스트를 전부 확인하지 않고 plane인 경우만 확인
+                            if (_arObjectList[i].ObjectType == ArObject.ArObjectType.AdPlane)
                             {
-                                if (flag = j_entity.name.Equals(entity.GameObj.name))
+                                bool flag = false;
+
+                                foreach (JsonData j_entity in DataList.data)
                                 {
-                                    flag = false;
-                                    break;
+                                    if (flag = _arObjectList[i].GameObj.name.Equals(j_entity.name))
+                                    {
+                                        break; // 기존리스트에 있는 오브젝트가 새로 받아온 리스트에 존재 할 경우 넘어감.
+                                    }
+                                }
+
+                                if (flag == false)
+                                {
+                                    _arObjectList[i].Destroy(); // 기존리스트에 있는 오브젝트를 새로 받아온 리스트에서 조사하여 없는 경우 파괴
+                                    _arObjectList.RemoveAt(i); // 리스트에서 제거 - 리스트에서 제거시 리스트 연결, index 문제 있을 수 있음. 확인 필요
+                                    i--;
                                 }
                             }
                         }
 
-                        // 기존 리스트에 없는 경우 새로 생성
-                        if (flag == true)
+                        // Object List에 추가
+                        foreach (JsonData j_entity in DataList.data)
                         {
-                            AdInfo tmpAdInfo = new AdInfo
+                            bool flag = true;
+
+                            //기존 리스트에 이미 있는 경우 안만듦
+                            foreach (ArObject entity in _arObjectList)
                             {
-                                Name = j_entity.name,
-                                GpsInfo = new Vector3(j_entity.latitude, j_entity.longitude, j_entity.altitude),
-                                Bearing = j_entity.bearing,
-                                TextureUrl = j_entity.texture_url,
-                                TextureAlternateText = "",
-                                AdTexture = null
-                            };
-                            // texture url정보 받아와서 수정 필요.
-                            
-                            _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+                                if (entity.ObjectType == ArObject.ArObjectType.AdPlane) // 리스트를 전부 확인하지 않고 plane인 경우만 확인
+                                {
+                                    if (flag = j_entity.name.Equals(entity.GameObj.name))
+                                    {
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // 기존 리스트에 없는 경우 새로 생성
+                            if (flag == true)
+                            {
+                                AdInfo tmpAdInfo = new AdInfo
+                                {
+                                    Name = j_entity.name,
+                                    GpsInfo = new Vector3(j_entity.latitude, j_entity.longitude, j_entity.altitude),
+                                    Bearing = j_entity.bearing,
+                                    TextureUrl = j_entity.texture_url,
+                                    TextureAlternateText = "",
+                                    AdTexture = null
+                                };
+                                // texture url정보 받아와서 수정 필요.
+
+                                _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+                            }
                         }
                     }
                 }
             }
-            Debug.Log("Object Count: " + _arObjectList.Count.ToString());
+            // 5초에 한번씩 실행
+            yield return new WaitForSeconds(5.0f);
         }
     }
 }
