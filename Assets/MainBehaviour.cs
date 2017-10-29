@@ -14,6 +14,7 @@ public class JsonData
     public float altitude;
     public float bearing;
     public string banner_url;
+    public string texture_url;
 }
 
 [System.Serializable]
@@ -49,6 +50,19 @@ public class MainBehaviour : MonoBehaviour
         // 테스트용 플레인 생성
         //StartCoroutine(CreateTestPlanes());
         StartCoroutine(GetPlaneList());
+
+        //test plane
+        //AdInfo tmpAdInfo = new AdInfo
+        //{
+        //    Name = "Google",
+        //    GpsInfo = new Vector3(0.0f, 0.0f, 0.0f),
+        //    Bearing = 0.0f,
+        //    TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+        //    TextureAlternateText = "",
+        //    AdTexture = null
+        //};
+
+        //_arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
     }
 
     private IEnumerator CreateTestPlanes()
@@ -84,6 +98,7 @@ public class MainBehaviour : MonoBehaviour
         // 270.0:서    동:90.0
         //          남
         //          :180.0
+        // low pass filter
         float newBearing = Input.compass.trueHeading;
         if (Mathf.Abs(newBearing - _userInfo.CurrentBearing) < 180)
         {
@@ -186,6 +201,7 @@ public class MainBehaviour : MonoBehaviour
             //StaticCoroutine.DoCoroutine(GetCommentList());
             //StaticCoroutine.DoCoroutine(GetUserObjectList());
 
+            // 초기 정보 입력
             if (!_userInfo.OriginalValuesSet)
             {
                 _userInfo.StartingLatitude = _userInfo.CurrentLatitude;
@@ -199,6 +215,7 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
+    // 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     IEnumerator GetPlaneList()
     {
         if (!_userInfo.OriginalValuesSet)
@@ -249,14 +266,15 @@ public class MainBehaviour : MonoBehaviour
                             {
                                 if (flag = _arObjectList[i].GameObj.name.Equals(j_entity.name))
                                 {
-                                    break; // 새로 받아온 리스트에 존재 할 경우 넘어감.
+                                    break; // 기존리스트에 있는 오브젝트가 새로 받아온 리스트에 존재 할 경우 넘어감.
                                 }
                             }
 
                             if (flag == false)
                             {
-                                _arObjectList[i].Destroy(); // 새로 받아온 리스트를 조사하여 없는 경우 파괴
-                                _arObjectList.RemoveAt(i); // 리스트에서 제거
+                                _arObjectList[i].Destroy(); // 기존리스트에 있는 오브젝트를 새로 받아온 리스트에서 조사하여 없는 경우 파괴
+                                _arObjectList.RemoveAt(i); // 리스트에서 제거 - 리스트에서 제거시 리스트 연결, index 문제 있을 수 있음. 확인 필요
+                                i--;
                             }
                         }
                     }
@@ -269,10 +287,13 @@ public class MainBehaviour : MonoBehaviour
                         //기존 리스트에 이미 있는 경우 안만듦
                         foreach (ArObject entity in _arObjectList)
                         {
-                            if (flag = j_entity.name.Equals(entity.GameObj.name))
+                            if (entity.ObjectType == ArObject.ArObjectType.AdPlane) // 리스트를 전부 확인하지 않고 plane인 경우만 확인
                             {
-                                flag = false;
-                                break;
+                                if (flag = j_entity.name.Equals(entity.GameObj.name))
+                                {
+                                    flag = false;
+                                    break;
+                                }
                             }
                         }
 
@@ -284,10 +305,11 @@ public class MainBehaviour : MonoBehaviour
                                 Name = j_entity.name,
                                 GpsInfo = new Vector3(j_entity.latitude, j_entity.longitude, j_entity.altitude),
                                 Bearing = j_entity.bearing,
-                                TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+                                TextureUrl = j_entity.texture_url,
                                 TextureAlternateText = "",
                                 AdTexture = null
                             };
+                            // texture url정보 받아와서 수정 필요.
                             
                             _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
                         }
