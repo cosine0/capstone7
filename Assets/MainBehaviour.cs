@@ -15,6 +15,8 @@ public class JsonData
     public float bearing;
     public string banner_url;
     public string texture_url;
+    //public float width;
+    //public float height;
 }
 
 [System.Serializable]
@@ -60,10 +62,11 @@ public class MainBehaviour : MonoBehaviour
         //    GpsInfo = new Vector3(0.0f, 0.0f, 0.0f),
         //    Bearing = 0.0f,
         //    TextureUrl = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
+        //    BannerUrl = "https://google.com",
         //    TextureAlternateText = "",
         //    AdTexture = null
         //};
-
+        //
         //_arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
     }
 
@@ -75,16 +78,54 @@ public class MainBehaviour : MonoBehaviour
 
     private void Update()
     {
-        UpdateCameraBearing();
+        //UpdateCameraBearing();
         UpdateCameraPosition();
+
+        // Touch
+        if (Input.touchCount > 0)
+        {
+            Touch _touch = Input.GetTouch(0);
+            Vector2 pos = Input.GetTouch(0).position;
+
+            Ray _ray = Camera.main.ScreenPointToRay(new Vector3(pos.x, pos.y, 0.0f));
+            RaycastHit hitObj;
+
+            switch (_touch.phase)
+            {
+                case TouchPhase.Began:
+                    
+                    break;
+
+                case TouchPhase.Moved:
+                    break;
+
+                case TouchPhase.Stationary:
+                    break;
+
+                case TouchPhase.Ended:
+                    Physics.Raycast(_ray, out hitObj, Mathf.Infinity);
+                    Application.OpenURL(hitObj.collider.GetComponent<DataContainer>().banner_url);
+                    break;
+
+                case TouchPhase.Canceled:
+                    break;
+            }
+        }
 
         //위치 정보 출력(디버그)
         TextBox.GetComponent<Text>().text =
             "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
             + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
             + "\ncamera position: " + _userInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles
-            + "\nObject Count: " + _arObjectList.Count.ToString();
+            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_userInfo.MainCamera.transform.eulerAngles.y - _userInfo.StartingBearing).ToString() + ", "
+            + _userInfo.MainCamera.transform.eulerAngles.z.ToString()
+            + "\nObject Count: " + _arObjectList.Count.ToString() + "\n";
+
+        foreach (ArObject entity in _arObjectList)
+        {
+            Vector3 diff = entity.GameObj.transform.position - _userInfo.MainCamera.transform.position;
+            TextBox.GetComponent<Text>().text += "Object diff: " + diff.ToString();
+        }
 
         //+ "\nplane position: " + _arObjectList[0].GameObj.transform.position.ToString()
         //// ARObject Update (animation)
@@ -134,6 +175,7 @@ public class MainBehaviour : MonoBehaviour
                 }
             }
         }
+        
         Vector3 newCameraAngle = _userInfo.MainCamera.transform.eulerAngles;
         newCameraAngle.y = _userInfo.CurrentBearing;
         _userInfo.MainCamera.transform.eulerAngles = newCameraAngle;
@@ -322,8 +364,11 @@ public class MainBehaviour : MonoBehaviour
                                     GpsInfo = new Vector3(j_entity.latitude, j_entity.longitude, j_entity.altitude),
                                     Bearing = j_entity.bearing,
                                     TextureUrl = j_entity.texture_url,
+                                    BannerUrl = j_entity.banner_url,
                                     TextureAlternateText = "",
-                                    AdTexture = null
+                                    AdTexture = null,
+                                    //Width = j_entity.width,
+                                    //Height = j_entity.height
                                 };
                                 // texture url정보 받아와서 수정 필요.
 
