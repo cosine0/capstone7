@@ -4,6 +4,16 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+
+[System.Serializable]
+public class JsonLoginData
+{
+    public string user_id;
+    public string user_name;
+    
+}
+
+
 public class Login : MonoBehaviour {
 
 
@@ -17,12 +27,7 @@ public class Login : MonoBehaviour {
     public InputField NameInputField;
     public GameObject CreateAccountPanelObj;
 
-    [System.Serializable]
-    public class JsonData {
-        public string user_id;
-        public string user_name;
-        public string login;
-    }
+    
 
     public void LoginCheck()
     {
@@ -85,11 +90,15 @@ public class Login : MonoBehaviour {
                 // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
                 string fromServJson = www.downloadHandler.text;
 
-                JsonData DataList = JsonUtility.FromJson<JsonData>(fromServJson);
+                //fromServJson = "{\"user_id\":\"a\"}";
+
+                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+
+                
 
                 // 서버로부터 현재 로그인 된 user_id랑 user_name 받아옴.
 
-                if (DataList.login == "NO") Debug.Log("failed login");
+                if (DataList.user_id == "") Debug.Log("failed login");
                 else {
                     Debug.Log("successed login");
                     SceneManager.LoadScene("loadscene");
