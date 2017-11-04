@@ -31,8 +31,15 @@ public class LoadingSceneManager : MonoBehaviour
         AsyncOperation op = SceneManager.LoadSceneAsync("capstone7");
         op.allowSceneActivation = false;
 
+        GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
+        string session_info = sessionInfo.GetComponent<Login>().session_;
 
-        using (UnityWebRequest www = UnityWebRequest.Get("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php"))
+        WWWForm form = new WWWForm();
+        form.AddField("Input_Session_ID", session_info);
+
+        Debug.Log("꺄"+session_info);
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php",form))
         {
             yield return www.Send();
 
@@ -50,6 +57,10 @@ public class LoadingSceneManager : MonoBehaviour
                 //fromServJson = "{\"user_id\":\"a\"}";
 
                 JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+
+                
+
+                
 
 
                 infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";

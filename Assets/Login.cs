@@ -10,13 +10,14 @@ public class JsonLoginData
 {
     public string user_id;
     public string user_name;
-    
+    public string sessionID;
 }
+
 
 
 public class Login : MonoBehaviour {
 
-
+    public string session_;
 
     [Header("LoginPanel")]
     public InputField IdInputField;
@@ -94,7 +95,7 @@ public class Login : MonoBehaviour {
 
                 JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
 
-                
+                session_ = DataList.sessionID;
 
                 // 서버로부터 현재 로그인 된 user_id랑 user_name 받아옴.
 
