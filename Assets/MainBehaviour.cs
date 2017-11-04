@@ -15,8 +15,8 @@ public class JsonData
     public float bearing;
     public string banner_url;
     public string texture_url;
-    //public float width;
-    //public float height;
+    public float width;
+    public float height;
 }
 
 [System.Serializable]
@@ -68,6 +68,8 @@ public class MainBehaviour : MonoBehaviour
         //};
         //
         //_arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+
+       
     }
 
     private IEnumerator CreateTestPlanes()
@@ -117,7 +119,7 @@ public class MainBehaviour : MonoBehaviour
             "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
             + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
             + "\ncamera position: " + _userInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_userInfo.MainCamera.transform.eulerAngles.y - _userInfo.StartingBearing).ToString() + ", "
+            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_userInfo.MainCamera.transform.eulerAngles.y + _userInfo.StartingBearing).ToString() + ", "
             + _userInfo.MainCamera.transform.eulerAngles.z.ToString()
             + "\nObject Count: " + _arObjectList.Count.ToString() + "\n";
 
@@ -259,26 +261,19 @@ public class MainBehaviour : MonoBehaviour
     // 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     IEnumerator GetPlaneList()
     {
-        if (!_userInfo.OriginalValuesSet)
-            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
+        //if (!_userInfo.OriginalValuesSet)
+        //    yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
 
         while (true)
         {
             string latitude = _userInfo.CurrentLatitude.ToString();
             string longitude = _userInfo.CurrentLongitude.ToString();
             string altitude = _userInfo.CurrentAltitude.ToString();
-
-            //_userInfo.StartingLatitude = 37.270440f;
-            //_userInfo.StartingLongitude = 126.394210f;
-            //_userInfo.StartingAltitude = 53.000000f;
-            //_userInfo.StartingBearing = 13.0f;
-
-            //_userInfo.OriginalValuesSet = true;
-
-            ////gps testset
-            //string latitude = "37.270440";
-            //string longitude = "126.394210";
-            //string altitude = "53.000000";
+            
+            //gps testset
+            //latitude = "37.450700";
+            //longitude = "126.657100";
+            //altitude = "53.000000";
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
@@ -367,8 +362,8 @@ public class MainBehaviour : MonoBehaviour
                                     BannerUrl = j_entity.banner_url,
                                     TextureAlternateText = "",
                                     AdTexture = null,
-                                    //Width = j_entity.width,
-                                    //Height = j_entity.height
+                                    Width = j_entity.width,
+                                    Height = j_entity.height
                                 };
                                 // texture url정보 받아와서 수정 필요.
 
