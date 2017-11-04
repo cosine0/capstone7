@@ -2,7 +2,7 @@
 
 public class UserInfo
 {
-    public bool OriginalValuesSet = false;
+    public bool OriginalValuesAreSet = false;
 
     public float StartingBearing = 0.0f;
     public float StartingLatitude = 0.0f;
