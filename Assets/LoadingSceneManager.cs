@@ -31,7 +31,7 @@ public class LoadingSceneManager : MonoBehaviour
     {
         yield return null;
 
-        AsyncOperation op = SceneManager.LoadSceneAsync("capstone7");
+        AsyncOperation op = SceneManager.LoadSceneAsync("InApp");
         op.allowSceneActivation = false;
 
         infotext = GameObject.FindGameObjectWithTag("session_gameobject");
