@@ -106,10 +106,9 @@ public class MainBehaviour : MonoBehaviour
             "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing) + ", "
-            + _clientInfo.MainCamera.transform.eulerAngles.z
-            + "\nObject Count: " + _arObjects.Count
-            + "\nCamera to object: ";
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing).ToString() + ", "
+            + _clientInfo.MainCamera.transform.eulerAngles.z.ToString()
+            + "\nObject Count: " + _arObjectList.Count.ToString() + "\n";
 
         foreach (ArObject entity in _arObjects.Values)
         {
@@ -242,7 +241,7 @@ public class MainBehaviour : MonoBehaviour
 
 
             // 초기 위치 정보 저장
-            if (!_clientInfo.OriginalValuesAreSet)
+            if (!_clientInfo.OriginalValuesSet)
             {
                 _clientInfo.StartingLatitude = _clientInfo.CurrentLatitude;
                 _clientInfo.StartingLongitude = _clientInfo.CurrentLongitude;
@@ -261,14 +260,14 @@ public class MainBehaviour : MonoBehaviour
     private IEnumerator GetPlaneList(float intervalInSecond=5.0f)
     {
         if (!_clientInfo.OriginalValuesSet)
-            yield return new WaitUntil(() => _clientInfo.OriginalValuesSet);
+            yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
 
         while (true)
         {
             string latitude = _clientInfo.CurrentLatitude.ToString();
             string longitude = _clientInfo.CurrentLongitude.ToString();
             string altitude = _clientInfo.CurrentAltitude.ToString();
-
+            
             // 테스트용 GPS
             //latitude = "37.450571";
             //longitude = "126.656903";
@@ -346,7 +345,7 @@ public class MainBehaviour : MonoBehaviour
                             };
 
                             // texture url정보 받아와서 수정 필요.
-                            _arObjects[jsonArObject.ad_no] = new ArPlane(tmpAdInfo, _userInfo);
+                            _arObjects[jsonArObject.ad_no] = new ArPlane(tmpAdInfo, _clientInfo);
                         }
                     }
                 }
