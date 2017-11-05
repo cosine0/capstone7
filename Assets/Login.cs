@@ -5,6 +5,6 @@ public class Login : MonoBehaviour {
 
 	public void ToInAppScene()
     {
-        SceneManager.LoadScene("capstone7");
+        SceneManager.LoadScene("InApp");
     }
 }

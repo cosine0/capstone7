@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class JsonData
@@ -374,5 +375,9 @@ public class MainBehaviour : MonoBehaviour
             // 5초에 한번씩 실행
             yield return new WaitForSeconds(5.0f);
         }
+    }
+    public void ToOptionScene()
+    {
+        SceneManager.LoadScene("Option");
     }
 }
