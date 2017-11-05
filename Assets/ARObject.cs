@@ -5,11 +5,12 @@ using UnityEngine.Networking;
 
 public class AdInfo
 {
+    public int Id;
     public string Name = "";
     public Vector3 GpsInfo;
     public float Bearing = 0.0f;
     public string TextureUrl = null;
-    public string TextureAlternateText = "";
+    public string TextAlternateToTexture = "";
     public string BannerUrl = null;
     public Texture AdTexture = null;
     public float Width = 1.0f;
@@ -26,6 +27,7 @@ public class CommentInfo
 // abstract ARObject
 public abstract class ArObject
 {
+    public int Id;
     public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
 
     public GameObject GameObj;
@@ -66,7 +68,7 @@ public class ArPlane : ArObject
         GameObj.name = Info.Name;
         GameObj.AddComponent<DataContainer>().banner_url = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
 
-        yield return new WaitUntil(() => UserInfoObj.OriginalValuesSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
+        yield return new WaitUntil(() => UserInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
         // 초기 포지션 설정
         Debug.Log("plane gps info : " + Info.GpsInfo[0] + " " + Info.GpsInfo[1] + " " + Info.GpsInfo[2]);

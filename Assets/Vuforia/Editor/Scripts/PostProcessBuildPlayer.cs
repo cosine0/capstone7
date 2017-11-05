@@ -126,7 +126,7 @@ namespace Vuforia.EditorClasses
 
             pbxProj.WriteLine("\t\t" + id + " /* " + name +
                               " */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = " +
-                              lastKnownFileType + "; name = " + name + "; path = Data/Raw/" + name +
+                              lastKnownFileType + "; name = " + name + "; path = data/Raw/" + name +
                               "; sourceTree = SOURCE_ROOT; };");
         }
 
@@ -203,7 +203,7 @@ namespace Vuforia.EditorClasses
             // There may not be a qcar resource folder if no targets are used
             var newResFiles = new List<ResFile>();
             foreach (var rf in resFiles)
-                if (Directory.Exists(Path.Combine(xCodeProjFileName, "../Data/Raw/" + rf.Name)))
+                if (Directory.Exists(Path.Combine(xCodeProjFileName, "../data/Raw/" + rf.Name)))
                 {
                     newResFiles.Add(rf);
                 }
@@ -328,7 +328,7 @@ namespace Vuforia.EditorClasses
                         pbxproj.Flush(); 
                         pbxproj.BaseStream.Seek(-3, SeekOrigin.Current);
                         
-                        pbxproj.WriteLine("\\nrm -rf \\\"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Data/Raw/QCAR\\\"\";");
+                        pbxproj.WriteLine("\\nrm -rf \\\"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/data/Raw/QCAR\\\"\";");
                     }
                 }
 
