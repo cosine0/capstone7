@@ -7,39 +7,50 @@ using UnityEngine.Networking;
 
 public class LoadingSceneManager : MonoBehaviour
 {
-    public static string NextScene;
+    public static string nextScene;
 
     [SerializeField]
-    private Image _progressBar;
-    public GameObject Infotext;
+    Image progressBar;
+    public GameObject infotext;
+    public GameObject infotext2;
+    //Text text;
+
     private void Start()
     {
         StartCoroutine(LoadScene());
     }
 
-    private string _nextSceneName;
+    string nextSceneName;
     public static void LoadScene(string sceneName)
     {
-        NextScene = sceneName;
+        nextScene = sceneName;
         SceneManager.LoadScene("loadscene");
     }
 
-    private IEnumerator LoadScene()
+    IEnumerator LoadScene()
     {
         yield return null;
 
         AsyncOperation op = SceneManager.LoadSceneAsync("capstone7");
         op.allowSceneActivation = false;
 
-        GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
-        string sessionInfoString = sessionInfo.GetComponent<Login>().Session;
+        infotext = GameObject.FindGameObjectWithTag("session_gameobject");
 
-        WWWForm form = new WWWForm();
-        form.AddField("Input_Session_ID", sessionInfoString);
+        Debug.Log(infotext.GetComponent<Text>().text);
 
-        Debug.Log("꺄"+sessionInfoString);
+        //text.text = infotext.GetComponent<Text>().text;
 
-        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php",form))
+        ////GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
+        ////GameObject session_info = sessionInfo.GetComponent<Login>().idObject;
+
+        string tt = infotext.GetComponent<Text>().text;
+
+        WWWForm form2 = new WWWForm();
+        form2.AddField("id", tt);
+
+
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php", form2))
         {
             yield return www.Send();
 
@@ -56,12 +67,19 @@ public class LoadingSceneManager : MonoBehaviour
 
                 //fromServJson = "{\"user_id\":\"a\"}";
 
-                JsonLoginData dataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
-                
-                Infotext.GetComponent<Text>().text = "Welcome,\n" + dataList.user_name + "!";
+                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+
+
+
+                infotext2.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+
+
+                //infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+
             }
         }
 
+        
 
         float timer = 0.0f;
         while (!op.isDone)
@@ -73,17 +91,17 @@ public class LoadingSceneManager : MonoBehaviour
             if (op.progress >= 0.9f)
             {
 
-                _progressBar.fillAmount = Mathf.Lerp(_progressBar.fillAmount, 1f, timer);
+                progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, 1f, timer);
 
-                if (_progressBar.fillAmount == 1.0f)
+                if (progressBar.fillAmount == 1.0f)
                     op.allowSceneActivation = true;
 
                 
             }
             else
             {
-                _progressBar.fillAmount = Mathf.Lerp(_progressBar.fillAmount, op.progress, timer);
-                if (_progressBar.fillAmount >= op.progress)
+                progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, op.progress, timer);
+                if (progressBar.fillAmount >= op.progress)
                 {
                     timer = 0f;
                 }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - debugInfo
   - Loadingscenemanager
+  - session_gameobject
   layers:
   - Default
   - TransparentFX

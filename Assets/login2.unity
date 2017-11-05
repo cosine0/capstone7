@@ -242,6 +242,82 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 40427581}
+--- !u!1 &192605080
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 1639132427156868, guid: ef28a9e37cfbcbd49a180f4931a6585c,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 192605083}
+  - component: {fileID: 1451743328}
+  - component: {fileID: 192605082}
+  - component: {fileID: 192605081}
+  m_Layer: 0
+  m_Name: session_gameobject
+  m_TagString: session_gameobject
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &192605081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 192605080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: hihi
+--- !u!222 &192605082
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 192605080}
+--- !u!224 &192605083
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 192605080}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 571, y: 121.5}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &292344355
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,7 +528,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 978040990}
+      - m_Target: {fileID: 1451743328}
         m_MethodName: openSignUp
         m_Mode: 1
         m_Arguments:
@@ -1372,7 +1448,6 @@ GameObject:
   - component: {fileID: 978040987}
   - component: {fileID: 978040986}
   - component: {fileID: 978040985}
-  - component: {fileID: 978040990}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1450,23 +1525,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &978040990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 978040984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4959df2751960b14f8069a44cb98086b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  IdInputField: {fileID: 2089253419}
-  PwInputField: {fileID: 519608105}
-  New_IdInputField: {fileID: 2044025582}
-  New_PwInputField: {fileID: 40427583}
-  NameInputField: {fileID: 292344357}
-  CreateAccountPanelObj: {fileID: 1362741414}
 --- !u!1 &1007989889
 GameObject:
   m_ObjectHideFlags: 0
@@ -1711,7 +1769,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 978040990}
+      - m_Target: {fileID: 1451743328}
         m_MethodName: LoginCheck
         m_Mode: 1
         m_Arguments:
@@ -1903,6 +1961,25 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1438183734}
+--- !u!114 &1451743328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 114591928875963866, guid: ef28a9e37cfbcbd49a180f4931a6585c,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 192605080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4959df2751960b14f8069a44cb98086b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  session_object: {fileID: 0}
+  IdInputField: {fileID: 2089253419}
+  PwInputField: {fileID: 519608105}
+  New_IdInputField: {fileID: 2044025582}
+  New_PwInputField: {fileID: 40427583}
+  NameInputField: {fileID: 292344357}
+  CreateAccountPanelObj: {fileID: 1362741414}
 --- !u!1 &1502865531
 GameObject:
   m_ObjectHideFlags: 0
@@ -2201,7 +2278,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 978040990}
+      - m_Target: {fileID: 1451743328}
         m_MethodName: SignUp
         m_Mode: 1
         m_Arguments:

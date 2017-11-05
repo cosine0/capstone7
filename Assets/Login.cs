@@ -13,10 +13,15 @@ public class JsonLoginData
     public string sessionID;
 }
 
-public class Login : MonoBehaviour
-{
-    public string Session;
 
+
+public class Login : MonoBehaviour {
+
+    public GameObject session_object;
+
+    //public GameObject idObject;
+    //public string session_;
+    //public GameObject infotext2;
     [Header("LoginPanel")]
     public InputField IdInputField;
     public InputField PwInputField;
@@ -60,11 +65,31 @@ public class Login : MonoBehaviour
             }
             else
             {
-                // JSON 형태의 응답 파싱
-                string jsonLoginResult = www.downloadHandler.text;
+                Debug.Log(www.downloadHandler.text);
 
-                JsonLoginData loginInfo = JsonUtility.FromJson<JsonLoginData>(jsonLoginResult);
-                Session = loginInfo.sessionID;
+                // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
+                string fromServJson = www.downloadHandler.text;
+
+                //fromServJson = "{\"user_id\":\"a\"}";
+
+                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+
+                Debug.Log(DataList.sessionID);
+
+                session_object = GameObject.FindGameObjectWithTag("session_gameobject");
+
+                DontDestroyOnLoad(session_object);
+
+                session_object.GetComponent<Text>().text = DataList.sessionID;
+                
+
+                //session_object.GetComponent<Text>().text = DataList.sessionID;
+
+                //Debug.Log(session_object.GetComponent<Text>().text);
+
+                //infotext2.GetComponent<Text>().text = "Welcome,\n" + "!";
+
+                // 서버로부터 현재 로그인 된 user_id랑 user_name 받아옴.
 
                 // 서버로부터 현재 로그인된 user_id랑 user_name를 받아옴.
                 if (loginInfo.user_id == "")
