@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 [System.Serializable]
-public class JsonData
+public class JsonPlaneData
 {
     public int ad_no;
     public string name;
@@ -22,9 +22,9 @@ public class JsonData
 }
 
 [System.Serializable]
-public class JsonDataArray
+public class JsonPlaneDataArray
 {
-    public JsonData[] data;
+    public JsonPlaneData[] data;
 }
 
 /// <summary>
@@ -55,8 +55,8 @@ public class MainBehaviour : MonoBehaviour
         // AR 오브젝트 리스트 초기화
         _arObjects = new Dictionary<int, ArObject>();
 
-        // 주변 오브젝트 목록 주기적 업데이트 코루틴 시작
-        StartCoroutine(GetPlaneList());
+        // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
+        StartCoroutine(GetPlaneList(5.0f));
     }
 
     private void Update()
@@ -251,9 +251,9 @@ public class MainBehaviour : MonoBehaviour
     }
 
     /// <summary>
-    /// 5초마다 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
+    /// 일정 시간마다 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     /// </summary>
-    IEnumerator GetPlaneList()
+    private IEnumerator GetPlaneList(float intervalInSecond=5.0f)
     {
         if (!_userInfo.OriginalValuesAreSet)
             yield return new WaitUntil(() => _userInfo.OriginalValuesAreSet);
@@ -289,7 +289,7 @@ public class MainBehaviour : MonoBehaviour
                     string fromServJson = www.downloadHandler.text;
                     Debug.Log(fromServJson);
 
-                    JsonDataArray newObjectList = JsonUtility.FromJson<JsonDataArray>(fromServJson);
+                    JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(fromServJson);
 
                     var a = newObjectList.data;
                     if (newObjectList.data.Length == 0)
@@ -318,7 +318,7 @@ public class MainBehaviour : MonoBehaviour
                         }
 
                         // 받아온 리스트에서 새로 생긴 ArObject 생성
-                        foreach (JsonData jsonArObject in newObjectList.data)
+                        foreach (JsonPlaneData jsonArObject in newObjectList.data)
                         {
                             // 기존 리스트에 이미 있는 경우 안 만듦
                             if (_arObjects.Keys.Contains(jsonArObject.ad_no))
@@ -348,7 +348,7 @@ public class MainBehaviour : MonoBehaviour
             }
 
             // 5초에 한번씩 실행
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(intervalInSecond);
         }
     }
 }

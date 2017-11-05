@@ -1,43 +1,43 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-public class loadingscene : MonoBehaviour
+public class Loadingscene : MonoBehaviour
 {
-    public Slider slider;
-    bool IsDone = false;
-    float fTime = 0f;
-    AsyncOperation async_operation;
+    public Slider Slider;
 
-   
+    private bool _isDone = false;
+    private float _fTime = 0f;
+    private AsyncOperation _asyncOperation;
 
-    void Start()
+
+    private void Start()
     {
         StartCoroutine(StartLoad("capstone7"));
     }
 
-    void Update()
+    private void Update()
     {
-        fTime += Time.deltaTime;
-        slider.value = fTime;
+        _fTime += Time.deltaTime;
+        Slider.value = _fTime;
 
-        if (fTime >= 5)
+        if (_fTime >= 5)
         {
-            async_operation.allowSceneActivation = true;
+            _asyncOperation.allowSceneActivation = true;
         }
     }
 
-    public IEnumerator StartLoad(string strSceneName)
+    private IEnumerator StartLoad(string strSceneName)
     {
-        async_operation = Application.LoadLevelAsync(strSceneName);
-        async_operation.allowSceneActivation = false;
+        _asyncOperation = Application.LoadLevelAsync(strSceneName);
+        _asyncOperation.allowSceneActivation = false;
 
-        if (IsDone == false)
+        if (_isDone == false)
         {
-            IsDone = true;
+            _isDone = true;
 
-            while (async_operation.progress < 0.9f)
+            while (_asyncOperation.progress < 0.9f)
             {
-                slider.value = async_operation.progress;
+                Slider.value = _asyncOperation.progress;
 
                 yield return true;
             }

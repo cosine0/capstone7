@@ -7,24 +7,24 @@ using UnityEngine.Networking;
 
 public class LoadingSceneManager : MonoBehaviour
 {
-    public static string nextScene;
+    public static string NextScene;
 
     [SerializeField]
-    Image progressBar;
-    public GameObject infotext;
+    private Image _progressBar;
+    public GameObject Infotext;
     private void Start()
     {
         StartCoroutine(LoadScene());
     }
 
-    string nextSceneName;
+    private string _nextSceneName;
     public static void LoadScene(string sceneName)
     {
-        nextScene = sceneName;
+        NextScene = sceneName;
         SceneManager.LoadScene("loadscene");
     }
 
-    IEnumerator LoadScene()
+    private IEnumerator LoadScene()
     {
         yield return null;
 
@@ -32,12 +32,12 @@ public class LoadingSceneManager : MonoBehaviour
         op.allowSceneActivation = false;
 
         GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
-        string session_info = sessionInfo.GetComponent<Login>().session_;
+        string sessionInfoString = sessionInfo.GetComponent<Login>().Session;
 
         WWWForm form = new WWWForm();
-        form.AddField("Input_Session_ID", session_info);
+        form.AddField("Input_Session_ID", sessionInfoString);
 
-        Debug.Log("꺄"+session_info);
+        Debug.Log("꺄"+sessionInfoString);
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php",form))
         {
@@ -56,15 +56,9 @@ public class LoadingSceneManager : MonoBehaviour
 
                 //fromServJson = "{\"user_id\":\"a\"}";
 
-                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
-
+                JsonLoginData dataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
                 
-
-                
-
-
-                infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
-
+                Infotext.GetComponent<Text>().text = "Welcome,\n" + dataList.user_name + "!";
             }
         }
 
@@ -79,17 +73,17 @@ public class LoadingSceneManager : MonoBehaviour
             if (op.progress >= 0.9f)
             {
 
-                progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, 1f, timer);
+                _progressBar.fillAmount = Mathf.Lerp(_progressBar.fillAmount, 1f, timer);
 
-                if (progressBar.fillAmount == 1.0f)
+                if (_progressBar.fillAmount == 1.0f)
                     op.allowSceneActivation = true;
 
                 
             }
             else
             {
-                progressBar.fillAmount = Mathf.Lerp(progressBar.fillAmount, op.progress, timer);
-                if (progressBar.fillAmount >= op.progress)
+                _progressBar.fillAmount = Mathf.Lerp(_progressBar.fillAmount, op.progress, timer);
+                if (_progressBar.fillAmount >= op.progress)
                 {
                     timer = 0f;
                 }
