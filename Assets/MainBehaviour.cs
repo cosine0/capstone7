@@ -35,13 +35,13 @@ public class MainBehaviour : MonoBehaviour
     private List<ArObject> _arObjectList;
     /// <summary>
     /// 현재 사용자 정보</summary>
-    private UserInfo _userInfo;
+    private ClientInfo _clientInfo;
 
     private void Start()
     {
         // 사용자 정보 생성
-        _userInfo = new UserInfo();
-        _userInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        _clientInfo = new ClientInfo();
+        _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         // GPS 코루틴 시작
         StartCoroutine(GetGps());
@@ -67,13 +67,13 @@ public class MainBehaviour : MonoBehaviour
         //    AdTexture = null
         //};
         //
-        //_arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+        //_arObjectList.Add(new ArPlane(tmpAdInfo, _clientInfo));
     }
 
     private IEnumerator CreateTestPlanes()
     {
-        if (!_userInfo.OriginalValuesSet)
-            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
+        if (!_clientInfo.OriginalValuesSet)
+            yield return new WaitUntil(() => _clientInfo.OriginalValuesSet);
     }
 
     private void Update()
@@ -114,16 +114,16 @@ public class MainBehaviour : MonoBehaviour
 
         //위치 정보 출력(디버그)
         TextBox.GetComponent<Text>().text =
-            "Origin: " + _userInfo.StartingLatitude + ", " + _userInfo.StartingLongitude + ", " + _userInfo.StartingAltitude
-            + "\nGPS: " + _userInfo.CurrentLatitude + ", " + _userInfo.CurrentLongitude + ", " + _userInfo.CurrentAltitude
-            + "\ncamera position: " + _userInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _userInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_userInfo.MainCamera.transform.eulerAngles.y + _userInfo.StartingBearing).ToString() + ", "
-            + _userInfo.MainCamera.transform.eulerAngles.z.ToString()
+            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude
+            + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
+            + "\ncamera position: " + _clientInfo.MainCamera.transform.position
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing).ToString() + ", "
+            + _clientInfo.MainCamera.transform.eulerAngles.z.ToString()
             + "\nObject Count: " + _arObjectList.Count.ToString() + "\n";
 
         foreach (ArObject entity in _arObjectList)
         {
-            Vector3 diff = entity.GameObj.transform.position - _userInfo.MainCamera.transform.position;
+            Vector3 diff = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
             TextBox.GetComponent<Text>().text += "Object diff: " + diff.ToString();
         }
 
@@ -144,41 +144,41 @@ public class MainBehaviour : MonoBehaviour
         //          :180.0
         // low pass filter
         float newBearing = Input.compass.trueHeading;
-        if (Mathf.Abs(newBearing - _userInfo.CurrentBearing) < 180)
+        if (Mathf.Abs(newBearing - _clientInfo.CurrentBearing) < 180)
         {
-            if (Math.Abs(newBearing - _userInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+            if (Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
             {
-                _userInfo.CurrentBearing = newBearing;
+                _clientInfo.CurrentBearing = newBearing;
             }
             else
             {
-                _userInfo.CurrentBearing = _userInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _userInfo.CurrentBearing);
+                _clientInfo.CurrentBearing = _clientInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _clientInfo.CurrentBearing);
             }
         }
         else
         {
-            if (360.0 - Math.Abs(newBearing - _userInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+            if (360.0 - Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
             {
-                _userInfo.CurrentBearing = newBearing;
+                _clientInfo.CurrentBearing = newBearing;
             }
             else
             {
-                if (_userInfo.CurrentBearing > newBearing)
+                if (_clientInfo.CurrentBearing > newBearing)
                 {
-                    _userInfo.CurrentBearing = (_userInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _userInfo.CurrentBearing) % 360) +
+                    _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _clientInfo.CurrentBearing) % 360) +
                                       360) % 360;
                 }
                 else
                 {
-                    _userInfo.CurrentBearing = (_userInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _userInfo.CurrentBearing) % 360) +
+                    _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _clientInfo.CurrentBearing) % 360) +
                                       360) % 360;
                 }
             }
         }
         
-        Vector3 newCameraAngle = _userInfo.MainCamera.transform.eulerAngles;
-        newCameraAngle.y = _userInfo.CurrentBearing;
-        _userInfo.MainCamera.transform.eulerAngles = newCameraAngle;
+        Vector3 newCameraAngle = _clientInfo.MainCamera.transform.eulerAngles;
+        newCameraAngle.y = _clientInfo.CurrentBearing;
+        _clientInfo.MainCamera.transform.eulerAngles = newCameraAngle;
     }
 
     private void UpdateCameraPosition()
@@ -193,10 +193,10 @@ public class MainBehaviour : MonoBehaviour
         // y: 위+
         //    아래-
         Vector3 coordinateDifferenceFromStart = GpsCalulator.CoordinateDifference(
-            _userInfo.StartingLatitude, _userInfo.StartingLongitude, _userInfo.StartingAltitude,
-            _userInfo.CurrentLatitude, _userInfo.CurrentLongitude, _userInfo.StartingAltitude);
+            _clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude,
+            _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, _clientInfo.StartingAltitude);
 
-        _userInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
+        _clientInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
     }
 
     private IEnumerator GetGps()
@@ -234,23 +234,23 @@ public class MainBehaviour : MonoBehaviour
                 yield break;
             }
 
-            _userInfo.LastGpsMeasureTime = Time.time;
+            _clientInfo.LastGpsMeasureTime = Time.time;
 
-            _userInfo.CurrentLatitude = Input.location.lastData.latitude;
-            _userInfo.CurrentLongitude = Input.location.lastData.longitude;
-            _userInfo.CurrentAltitude = Input.location.lastData.altitude;
-            _userInfo.CurrentBearing = Input.compass.trueHeading;
+            _clientInfo.CurrentLatitude = Input.location.lastData.latitude;
+            _clientInfo.CurrentLongitude = Input.location.lastData.longitude;
+            _clientInfo.CurrentAltitude = Input.location.lastData.altitude;
+            _clientInfo.CurrentBearing = Input.compass.trueHeading;
 
 
             // 초기 정보 입력
-            if (!_userInfo.OriginalValuesSet)
+            if (!_clientInfo.OriginalValuesSet)
             {
-                _userInfo.StartingLatitude = _userInfo.CurrentLatitude;
-                _userInfo.StartingLongitude = _userInfo.CurrentLongitude;
-                _userInfo.StartingAltitude = _userInfo.CurrentAltitude;
-                _userInfo.StartingBearing = _userInfo.CurrentBearing;
+                _clientInfo.StartingLatitude = _clientInfo.CurrentLatitude;
+                _clientInfo.StartingLongitude = _clientInfo.CurrentLongitude;
+                _clientInfo.StartingAltitude = _clientInfo.CurrentAltitude;
+                _clientInfo.StartingBearing = _clientInfo.CurrentBearing;
 
-                _userInfo.OriginalValuesSet = true;
+                _clientInfo.OriginalValuesSet = true;
             }
             Input.location.Stop();
         }
@@ -259,14 +259,14 @@ public class MainBehaviour : MonoBehaviour
     // 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     IEnumerator GetPlaneList()
     {
-        if (!_userInfo.OriginalValuesSet)
-            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
+        if (!_clientInfo.OriginalValuesSet)
+            yield return new WaitUntil(() => _clientInfo.OriginalValuesSet);
 
         while (true)
         {
-            string latitude = _userInfo.CurrentLatitude.ToString();
-            string longitude = _userInfo.CurrentLongitude.ToString();
-            string altitude = _userInfo.CurrentAltitude.ToString();
+            string latitude = _clientInfo.CurrentLatitude.ToString();
+            string longitude = _clientInfo.CurrentLongitude.ToString();
+            string altitude = _clientInfo.CurrentAltitude.ToString();
             
             //gps testset
             latitude = "37.450700";
@@ -365,7 +365,7 @@ public class MainBehaviour : MonoBehaviour
                                 };
                                 // texture url정보 받아와서 수정 필요.
 
-                                _arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
+                                _arObjectList.Add(new ArPlane(tmpAdInfo, _clientInfo));
                             }
                         }
                     }

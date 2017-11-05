@@ -30,7 +30,7 @@ public abstract class ArObject
 
     public GameObject GameObj;
 
-    public UserInfo UserInfoObj;
+    public ClientInfo ClientInfoObj;
 
     public ArObjectType ObjectType;
 
@@ -43,10 +43,10 @@ public class ArPlane : ArObject
 {
     public AdInfo Info;
     
-    public ArPlane(AdInfo info, UserInfo userInfo)
+    public ArPlane(AdInfo info, ClientInfo clientInfo)
     {
         Info = info;
-        UserInfoObj = userInfo;
+        ClientInfoObj = clientInfo;
         Create();
     }
 
@@ -66,17 +66,17 @@ public class ArPlane : ArObject
         GameObj.name = Info.Name;
         GameObj.AddComponent<DataContainer>().banner_url = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
         
-        yield return new WaitUntil(() => UserInfoObj.OriginalValuesSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
+        yield return new WaitUntil(() => ClientInfoObj.OriginalValuesSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
         // 초기 포지션 설정
         Debug.Log("plane gps info : " + Info.GpsInfo[0] + " " + Info.GpsInfo[1] + " " + Info.GpsInfo[2]);
-        Vector3 unityPosition = GpsCalulator.CoordinateDifference(UserInfoObj.StartingLatitude, UserInfoObj.StartingLongitude, UserInfoObj.StartingAltitude,
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,
             Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
 
         GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
-        GameObj.transform.RotateAround(UserInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -UserInfoObj.StartingBearing); // 카메라 포지션 기준 회전
+        GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.StartingBearing); // 카메라 포지션 기준 회전
         // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }
