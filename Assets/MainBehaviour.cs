@@ -68,8 +68,6 @@ public class MainBehaviour : MonoBehaviour
         //};
         //
         //_arObjectList.Add(new ArPlane(tmpAdInfo, _userInfo));
-
-       
     }
 
     private IEnumerator CreateTestPlanes()
@@ -261,8 +259,8 @@ public class MainBehaviour : MonoBehaviour
     // 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     IEnumerator GetPlaneList()
     {
-        //if (!_userInfo.OriginalValuesSet)
-        //    yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
+        if (!_userInfo.OriginalValuesSet)
+            yield return new WaitUntil(() => _userInfo.OriginalValuesSet);
 
         while (true)
         {
@@ -271,9 +269,9 @@ public class MainBehaviour : MonoBehaviour
             string altitude = _userInfo.CurrentAltitude.ToString();
             
             //gps testset
-            //latitude = "37.450700";
-            //longitude = "126.657100";
-            //altitude = "53.000000";
+            latitude = "37.450700";
+            longitude = "126.657100";
+            altitude = "53.000000";
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
