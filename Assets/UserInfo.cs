@@ -1,19 +1,14 @@
 ﻿using UnityEngine;
 
-public class UserInfo
+public class UserInfo : MonoBehaviour
 {
-    public bool OriginalValuesAreSet = false;
+    public string userid = "";
+    public string name = "";
+    public string session_id = "";
+    public int point = -1;
 
-    public float StartingBearing = 0.0f;
-    public float StartingLatitude = 0.0f;
-    public float StartingLongitude = 0.0f;
-    public float StartingAltitude = 0.0f;
-
-    public float CurrentBearing = 0.0f;
-    public float CurrentLatitude = 0.0f;
-    public float CurrentLongitude = 0.0f;
-    public float CurrentAltitude = 0.0f;
-    public float LastGpsMeasureTime = 0.0f;
-
-    public GameObject MainCamera = null;
+    public void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
 }

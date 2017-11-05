@@ -7,6 +7,7 @@ TagManager:
   - debugInfo
   - Loadingscenemanager
   - session_gameobject
+  - UserInfo
   layers:
   - Default
   - TransparentFX
