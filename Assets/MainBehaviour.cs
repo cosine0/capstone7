@@ -47,38 +47,16 @@ public class MainBehaviour : MonoBehaviour
     private void Start()
     {
         // 사용자 정보 생성
-        _userInfo = new UserInfo
-        {
-            MainCamera = GameObject.FindGameObjectWithTag("MainCamera")
-        };
+        _userInfo = new UserInfo();
+        _userInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         // GPS 좌표 정보 갱신용 코루틴 시작
         StartCoroutine(GetGps());
-        Debug.Log("start gggggggg!!!!");
         // AR 오브젝트 리스트 초기화
         _arObjects = new Dictionary<int, ArObject>();
 
         // 주변 오브젝트 목록 주기적 업데이트 코루틴 시작
-        Debug.Log("start cococo!!!!");
         StartCoroutine(GetPlaneList());
-
-        // 테스트용 플레인 생성
-        //StartCoroutine(CreateTestPlanes());
-        //StartCoroutine(GetPlaneList());
-
-        //test plane
-        //AdInfo tmpAdInfo = new AdInfo
-        //{
-        //    name = "Google",
-        //    GpsInfo = new Vector3(0.0f, 0.0f, 0.0f),
-        //    bearing = 0.0f,
-        //    texture_url = "https://lh4.googleusercontent.com/-v0soe-ievYE/AAAAAAAAAAI/AAAAAAADwkE/KyrKDjjeV1o/photo.jpg",
-        //    banner_url = "https://google.com",
-        //    TextAlternateToTexture = "",
-        //    AdTexture = null
-        //};
-        //
-        //_arObjects.Add(new ArPlane(tmpAdInfo, _userInfo));
     }
 
     private void Update()
@@ -153,19 +131,39 @@ public class MainBehaviour : MonoBehaviour
         // 270.0:서    동:90.0
         //          남
         //          :180.0
-        // low pass filter
+        // 로우 패스 (스무딩) 필터
         float newBearing = Input.compass.trueHeading;
-        if (Math.Abs((newBearing - _userInfo.CurrentBearing) % 360) > Constants.SmoothThresholdCompass)
+        if (Mathf.Abs(newBearing - _userInfo.CurrentBearing) < 180)
         {
-            _userInfo.CurrentBearing = newBearing;
+            if (Math.Abs(newBearing - _userInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+            {
+                _userInfo.CurrentBearing = newBearing;
+            }
+            else
+            {
+                _userInfo.CurrentBearing = _userInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _userInfo.CurrentBearing);
+            }
         }
         else
         {
-            var userInfoCurrentBearing = Constants.SmoothFactorCompass * (newBearing - _userInfo.CurrentBearing);
-            _userInfo.CurrentBearing += userInfoCurrentBearing;
+            if (360.0 - Math.Abs(newBearing - _userInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+            {
+                _userInfo.CurrentBearing = newBearing;
+            }
+            else
+            {
+                if (_userInfo.CurrentBearing > newBearing)
+                {
+                    _userInfo.CurrentBearing = (_userInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _userInfo.CurrentBearing) % 360) +
+                                      360) % 360;
+                }
+                else
+                {
+                    _userInfo.CurrentBearing = (_userInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _userInfo.CurrentBearing) % 360) +
+                                      360) % 360;
+                }
+            }
         }
-        _userInfo.CurrentBearing = (_userInfo.CurrentBearing % 360 + 360) % 360;  // normalize
-
         Vector3 newCameraAngle = _userInfo.MainCamera.transform.eulerAngles;
         newCameraAngle.y = _userInfo.CurrentBearing;
         _userInfo.MainCamera.transform.eulerAngles = newCameraAngle;
