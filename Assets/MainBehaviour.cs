@@ -108,7 +108,9 @@ public class MainBehaviour : MonoBehaviour
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
             + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing).ToString() + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z.ToString()
-            + "\nObject Count: " + _arObjectList.Count.ToString() + "\n";
+            + "\nObject Count: " + _arObjects.Count
+            + "\nCamera to object: ";
+
 
         foreach (ArObject entity in _arObjects.Values)
         {
@@ -241,7 +243,7 @@ public class MainBehaviour : MonoBehaviour
 
 
             // 초기 위치 정보 저장
-            if (!_clientInfo.OriginalValuesSet)
+            if (!_clientInfo.OriginalValuesAreSet)
             {
                 _clientInfo.StartingLatitude = _clientInfo.CurrentLatitude;
                 _clientInfo.StartingLongitude = _clientInfo.CurrentLongitude;
@@ -259,7 +261,7 @@ public class MainBehaviour : MonoBehaviour
     /// </summary>
     private IEnumerator GetPlaneList(float intervalInSecond=5.0f)
     {
-        if (!_clientInfo.OriginalValuesSet)
+        if (!_clientInfo.OriginalValuesAreSet)
             yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
 
         while (true)
