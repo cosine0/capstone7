@@ -12,6 +12,9 @@ public class LoadingSceneManager : MonoBehaviour
     [SerializeField]
     Image progressBar;
     public GameObject infotext;
+    public GameObject infotext2;
+    //Text text;
+
     private void Start()
     {
         StartCoroutine(LoadScene());
@@ -31,15 +34,23 @@ public class LoadingSceneManager : MonoBehaviour
         AsyncOperation op = SceneManager.LoadSceneAsync("capstone7");
         op.allowSceneActivation = false;
 
-        GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
-        string session_info = sessionInfo.GetComponent<Login>().session_;
+        infotext = GameObject.FindGameObjectWithTag("session_gameobject");
 
-        WWWForm form = new WWWForm();
-        form.AddField("Input_Session_ID", session_info);
+        Debug.Log(infotext.GetComponent<Text>().text);
 
-        Debug.Log("꺄"+session_info);
+        //text.text = infotext.GetComponent<Text>().text;
 
-        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php",form))
+        ////GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
+        ////GameObject session_info = sessionInfo.GetComponent<Login>().idObject;
+
+        string tt = infotext.GetComponent<Text>().text;
+
+        WWWForm form2 = new WWWForm();
+        form2.AddField("id", tt);
+
+
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php", form2))
         {
             yield return www.Send();
 
@@ -58,16 +69,17 @@ public class LoadingSceneManager : MonoBehaviour
 
                 JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
 
-                
-
-                
 
 
-                infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+                infotext2.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+
+
+                //infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
 
             }
         }
 
+        
 
         float timer = 0.0f;
         while (!op.isDone)

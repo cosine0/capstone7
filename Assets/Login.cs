@@ -17,8 +17,11 @@ public class JsonLoginData
 
 public class Login : MonoBehaviour {
 
-    public string session_;
+    public GameObject session_object;
 
+    //public GameObject idObject;
+    //public string session_;
+    //public GameObject infotext2;
     [Header("LoginPanel")]
     public InputField IdInputField;
     public InputField PwInputField;
@@ -95,7 +98,20 @@ public class Login : MonoBehaviour {
 
                 JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
 
-                session_ = DataList.sessionID;
+                Debug.Log(DataList.sessionID);
+
+                session_object = GameObject.FindGameObjectWithTag("session_gameobject");
+
+                DontDestroyOnLoad(session_object);
+
+                session_object.GetComponent<Text>().text = DataList.sessionID;
+                
+
+                //session_object.GetComponent<Text>().text = DataList.sessionID;
+
+                //Debug.Log(session_object.GetComponent<Text>().text);
+
+                //infotext2.GetComponent<Text>().text = "Welcome,\n" + "!";
 
                 // 서버로부터 현재 로그인 된 user_id랑 user_name 받아옴.
 

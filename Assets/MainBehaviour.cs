@@ -36,6 +36,9 @@ public class MainBehaviour : MonoBehaviour
 
     private void Start()
     {
+        //GameObject sessionInfo = GameObject.FindGameObjectWithTag("Loadingscenemanager");
+        //Debug.Log("꺄" + sessionInfo.GetComponent<Text>().text);
+
         // 사용자 정보 생성
         _userInfo = new UserInfo();
         _userInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
