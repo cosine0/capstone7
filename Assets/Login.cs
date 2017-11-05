@@ -72,15 +72,15 @@ public class Login : MonoBehaviour {
 
                 //fromServJson = "{\"user_id\":\"a\"}";
 
-                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+                JsonLoginData loginInfo = JsonUtility.FromJson<JsonLoginData>(fromServJson);
 
-                Debug.Log(DataList.sessionID);
+                Debug.Log(loginInfo.sessionID);
 
                 session_object = GameObject.FindGameObjectWithTag("session_gameobject");
 
                 DontDestroyOnLoad(session_object);
 
-                session_object.GetComponent<Text>().text = DataList.sessionID;
+                session_object.GetComponent<Text>().text = loginInfo.sessionID;
                 
 
                 //session_object.GetComponent<Text>().text = DataList.sessionID;

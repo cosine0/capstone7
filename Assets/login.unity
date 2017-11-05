@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311947, g: 0.38074005, b: 0.35872722, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -108,6 +108,11 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &171224067 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1639132427156868, guid: ef28a9e37cfbcbd49a180f4931a6585c,
+    type: 2}
+  m_PrefabInternal: {fileID: 1292946115}
 --- !u!1 &317631863
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,7 +190,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1368960025}
-        m_MethodName: openSignUp
+        m_MethodName: OnClickSignUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -985,7 +990,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1368960025}
-        m_MethodName: LoginCheck
+        m_MethodName: OnClickLogin
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1079,6 +1084,16 @@ Prefab:
       propertyPath: PwInputField
       value: 
       objectReference: {fileID: 519608105}
+    - target: {fileID: 114591928875963866, guid: ef28a9e37cfbcbd49a180f4931a6585c,
+        type: 2}
+      propertyPath: NewIdInputField
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 114591928875963866, guid: ef28a9e37cfbcbd49a180f4931a6585c,
+        type: 2}
+      propertyPath: session_object
+      value: 
+      objectReference: {fileID: 171224067}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: ef28a9e37cfbcbd49a180f4931a6585c, type: 2}
   m_IsPrefabParent: 0

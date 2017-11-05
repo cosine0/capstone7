@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311947, g: 0.38074005, b: 0.35872722, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -274,8 +274,8 @@ MonoBehaviour:
   session_object: {fileID: 1223567236}
   IdInputField: {fileID: 0}
   PwInputField: {fileID: 0}
-  New_IdInputField: {fileID: 0}
-  New_PwInputField: {fileID: 0}
+  NewIdInputField: {fileID: 0}
+  NewPwInputField: {fileID: 0}
   NameInputField: {fileID: 0}
   CreateAccountPanelObj: {fileID: 0}
 --- !u!1001 &1223567234

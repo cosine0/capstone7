@@ -72,6 +72,7 @@ public class LoadingSceneManager : MonoBehaviour
 
 
                 infotext2.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+                Debug.Log(infotext2.GetComponent<Text>().text);
 
 
                 //infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
