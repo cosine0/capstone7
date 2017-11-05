@@ -15,16 +15,16 @@ public class JsonData
     public float longitude;
     public float altitude;
     public float bearing;
-    public string banner_url;
-    public string texture_url;
     public float width;
     public float height;
+    public string banner_url;
+    public string texture_url;
 }
 
 [System.Serializable]
 public class JsonDataArray
 {
-    public JsonData[] Data;
+    public JsonData[] data;
 }
 
 /// <summary>
@@ -257,8 +257,8 @@ public class MainBehaviour : MonoBehaviour
     /// </summary>
     IEnumerator GetPlaneList()
     {
-//        if (!_userInfo.OriginalValuesAreSet)
-//            yield return new WaitUntil(() => _userInfo.OriginalValuesAreSet);
+        if (!_userInfo.OriginalValuesAreSet)
+            yield return new WaitUntil(() => _userInfo.OriginalValuesAreSet);
 
         while (true)
         {
@@ -267,15 +267,15 @@ public class MainBehaviour : MonoBehaviour
             string altitude = _userInfo.CurrentAltitude.ToString();
 
             // 테스트용 GPS
-             latitude = "37.450700";
-             longitude = "126.657100";
-             altitude = "53.000000";
+            //latitude = "37.450571";
+            //longitude = "126.656903";
+            //altitude = "53.000000";
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
             form.AddField("longitude", longitude);
             form.AddField("altitude", altitude);
-            Debug.Log("00000!!!!");
+
             using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
             {
                 yield return www.Send();
@@ -290,30 +290,24 @@ public class MainBehaviour : MonoBehaviour
                     // Json을 받아와 오브젝트로 변환
                     string fromServJson = www.downloadHandler.text;
                     Debug.Log(fromServJson);
+
                     JsonDataArray newObjectList = JsonUtility.FromJson<JsonDataArray>(fromServJson);
 
-                    Debug.Log("1111111!!!!");
-                    if (newObjectList.Data.Length == 0)
+                    var a = newObjectList.data;
+                    if (newObjectList.data.Length == 0)
                     {
-                        Debug.Log("2222222!!!!");
                         // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
                         foreach (var arObject in _arObjects.Values)
-                        {
-                            Debug.Log("3333333!!!!");
                             arObject.Destroy();
-                            Debug.Log("4444444!!!!");
-                        }
-                        Debug.Log("5555555!!!!");
+
                         _arObjects.Clear();
-                        Debug.Log("6666666!!!!");
                     }
                     else
                     {
+                        // 오브젝트 ID 모으기
                         var newObjectIds = new List<int>();
-                        foreach (var newObject in newObjectList.Data)
-                        {
+                        foreach (var newObject in newObjectList.data)
                             newObjectIds.Add(newObject.ad_no);
-                        }
 
                         // 받아온 리스트 없는 ArObject 삭제
                         foreach (var arObject in _arObjects)
@@ -326,10 +320,10 @@ public class MainBehaviour : MonoBehaviour
                         }
 
                         // 받아온 리스트에서 새로 생긴 ArObject 생성
-                        foreach (JsonData jsonArObject in newObjectList.Data)
+                        foreach (JsonData jsonArObject in newObjectList.data)
                         {
                             // 기존 리스트에 이미 있는 경우 안 만듦
-                            if (newObjectIds.Contains(jsonArObject.ad_no))
+                            if (_arObjects.Keys.Contains(jsonArObject.ad_no))
                                 continue;
 
                             // 새로운 ArObject 생성
