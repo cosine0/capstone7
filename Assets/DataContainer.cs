@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
 public class DataContainer : MonoBehaviour {
-    public string banner_url;
+    public string BannerUrl;
+    public int AdNum;
 }

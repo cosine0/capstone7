@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ClientInfo
+public class ClientInfo : MonoBehaviour
 {
     public bool OriginalValuesAreSet = false;
 
@@ -16,4 +16,13 @@ public class ClientInfo
     public float LastGpsMeasureTime = 0.0f;
 
     public GameObject MainCamera = null;
+
+    public bool InsideOption = false;
+    public int DistanceOption = 1;
+    public string VersionInfo = "0.1";
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
 }

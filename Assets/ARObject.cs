@@ -66,7 +66,8 @@ public class ArPlane : ArObject
         ObjectType = ArObjectType.AdPlane; // 타입 지정
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
-        GameObj.AddComponent<DataContainer>().banner_url = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
+        GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
+        GameObj.GetComponent<DataContainer>().AdNum = Info.Id;
 
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
@@ -74,6 +75,8 @@ public class ArPlane : ArObject
         Debug.Log("plane gps info : " + Info.GpsInfo[0] + " " + Info.GpsInfo[1] + " " + Info.GpsInfo[2]);
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,
             Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
+
+        unityPosition.y = 0; // 고도 사용 안함.
 
         GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
         GameObj.transform.position = unityPosition;

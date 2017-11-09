@@ -34,16 +34,14 @@ public class LoadingSceneManager : MonoBehaviour
         AsyncOperation op = SceneManager.LoadSceneAsync("InApp");
         op.allowSceneActivation = false;
 
-        infotext = GameObject.FindGameObjectWithTag("session_gameobject");
-
-        Debug.Log(infotext.GetComponent<Text>().text);
+        infotext = GameObject.FindGameObjectWithTag("UserInfo");
 
         //text.text = infotext.GetComponent<Text>().text;
 
         ////GameObject sessionInfo = GameObject.FindGameObjectWithTag("MainCamera");
         ////GameObject session_info = sessionInfo.GetComponent<Login>().idObject;
 
-        string tt = infotext.GetComponent<Text>().text;
+        string tt = infotext.GetComponent<UserInfo>().SessionId;
 
         WWWForm form2 = new WWWForm();
         form2.AddField("id", tt);

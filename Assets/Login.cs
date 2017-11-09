@@ -17,7 +17,7 @@ public class JsonLoginData
 
 public class Login : MonoBehaviour {
 
-    public GameObject session_object;
+    private UserInfo _userInfo;
 
     //public GameObject idObject;
     //public string session_;
@@ -42,7 +42,7 @@ public class Login : MonoBehaviour {
     }
 
     /// <summary>
-    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="Session"/> 멤버에 정보를 저장하는 코루틴.
+    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="_userInfo"/> 멤버에 정보를 저장하는 코루틴.
     /// </summary>
     private IEnumerator LoginCoroutine()
     {
@@ -76,12 +76,11 @@ public class Login : MonoBehaviour {
 
                 Debug.Log(loginInfo.sessionID);
 
-                session_object = GameObject.FindGameObjectWithTag("session_gameobject");
+                _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
-                DontDestroyOnLoad(session_object);
-
-                session_object.GetComponent<Text>().text = loginInfo.sessionID;
-                
+                _userInfo.SessionId = loginInfo.sessionID;
+                _userInfo.UserName = loginInfo.user_name;
+                _userInfo.UserId = loginInfo.user_id;
 
                 //session_object.GetComponent<Text>().text = DataList.sessionID;
 

@@ -2,12 +2,12 @@
 
 public class UserInfo : MonoBehaviour
 {
-    public string user_id = "";
-    public string user_name = "";
-    public string session_id = "";
-    public int point = -1;
+    public string UserId = "";
+    public string UserName = "";
+    public string SessionId = "";
+    public int Point = -1;
 
-    public void Awake()
+    private void Awake()
     {
         DontDestroyOnLoad(gameObject);
     }
