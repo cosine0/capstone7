@@ -313,17 +313,18 @@ public class MainBehaviour : MonoBehaviour
                     else
                     {
                         // 오브젝트 ID 모으기
-                        var newObjectIds = new List<int>();
+                        var newObjectIds = new HashSet<int>();
                         foreach (var newObject in newObjectList.data)
                             newObjectIds.Add(newObject.ad_no);
 
                         // 받아온 리스트 없는 ArObject 삭제
-                        foreach (var arObject in _arObjects)
+                        var oldOjbectIds = new List<int>(_arObjects.Keys);
+                        foreach (var oldNumber in oldOjbectIds)
                         {
-                            if (!newObjectIds.Contains(arObject.Key))
+                            if (!newObjectIds.Contains(oldNumber))
                             {
-                                arObject.Value.Destroy();
-                                _arObjects.Remove(arObject.Key);
+                                _arObjects[oldNumber].Destroy();
+                                _arObjects.Remove(oldNumber);
                             }
                         }
 
