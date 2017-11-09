@@ -66,7 +66,8 @@ public class ArPlane : ArObject
         ObjectType = ArObjectType.AdPlane; // 타입 지정
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
-        GameObj.AddComponent<DataContainer>().banner_url = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
+        GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
+        GameObj.GetComponent<DataContainer>().AdNum = Info.Id;
 
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
