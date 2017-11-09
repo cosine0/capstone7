@@ -93,7 +93,7 @@ public class MainBehaviour : MonoBehaviour
                 case TouchPhase.Ended:
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().banner_url);
+                    Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
                     break;
 
                 case TouchPhase.Canceled:
