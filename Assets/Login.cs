@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
-
+using UnityEditor;
 
 [System.Serializable]
 public class JsonLoginData
@@ -119,7 +119,12 @@ public class Login : MonoBehaviour {
     /// </summary>
     public void OnClickSignUp()
     {
-        StartCoroutine(SignUpCoroutine());
+        if (NewIdInputField.text == "") EditorUtility.DisplayDialog("MessageBox", "ID를 입력하세요", "OK");
+        else if (NewPwInputField.text == "") EditorUtility.DisplayDialog("MessageBox", "Password를 입력하세요", "OK");
+        else if (NameInputField.text == "") EditorUtility.DisplayDialog("MessageBox", "Name을 입력하세요", "OK");
+        else StartCoroutine(SignUpCoroutine());
+
+        //StartCoroutine(SignUpCoroutine());
         //CreateAccountPanelObj.SetActive(true);
 
         //SceneManager.LoadScene("loading");

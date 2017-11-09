@@ -5,7 +5,7 @@ public class UserInfo : MonoBehaviour
     public string UserId = "";
     public string UserName = "";
     public string SessionId = "";
-    public int Point = -1;
+    public int Point = 0;
 
     private void Awake()
     {
