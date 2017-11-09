@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311947, g: 0.38074005, b: 0.35872722, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -184,8 +184,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 40427584}
   m_TextComponent: {fileID: 647581772}
   m_Placeholder: {fileID: 1502865533}
-  m_ContentType: 7
-  m_InputType: 2
+  m_ContentType: 0
+  m_InputType: 0
   m_AsteriskChar: 42
   m_KeyboardType: 0
   m_LineType: 0
@@ -452,8 +452,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1505443459}
-        m_MethodName: OpenSignUp
+      - m_Target: {fileID: 0}
+        m_MethodName: OnClickSignUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1239,10 +1239,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acabee5828016b242b60d0111e3bccf2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UserId: 
-  UserName: 
-  SessionId: 
-  Point: -1
+  user_id: 
+  user_name: 
+  session_id: 
+  point: -1
 --- !u!4 &698472224
 Transform:
   m_ObjectHideFlags: 0
@@ -2030,6 +2030,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4959df2751960b14f8069a44cb98086b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  session_object: {fileID: 0}
   IdInputField: {fileID: 2089253419}
   PwInputField: {fileID: 519608105}
   NewIdInputField: {fileID: 0}
@@ -2273,8 +2274,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1505443459}
-        m_MethodName: OnClickSignUp
+      - m_Target: {fileID: 0}
+        m_MethodName: SignUp
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2712,6 +2713,6 @@ MonoBehaviour:
   CurrentAltitude: 0
   LastGpsMeasureTime: 0
   MainCamera: {fileID: 0}
-  InsideOption: 0
+  OutSideOption: 1
   DistanceOption: 1
   VersionInfo: 0.1
