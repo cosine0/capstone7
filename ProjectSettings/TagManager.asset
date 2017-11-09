@@ -6,8 +6,12 @@ TagManager:
   tags:
   - debugInfo
   - Loadingscenemanager
-  - session_gameobject
   - UserInfo
+  - ClientInfo
+  - session_gameobject
+  - OptionUserId
+  - OptionUserPoint
+  - OptionVersionInfo
   layers:
   - Default
   - TransparentFX

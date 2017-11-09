@@ -12,7 +12,7 @@ public class Loadingscene : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(StartLoad("capstone7"));
+        StartCoroutine(StartLoad("InApp"));
     }
 
     private void Update()

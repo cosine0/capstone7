@@ -43,6 +43,7 @@ public class MainBehaviour : MonoBehaviour
 
     /// <summary>
     /// 현재 사용자 정보</summary>
+    //private ClientInfo _clientInfo;
     private ClientInfo _clientInfo;
 
     private void Start()
@@ -51,7 +52,9 @@ public class MainBehaviour : MonoBehaviour
         //Debug.Log("꺄" + sessionInfo.GetComponent<Text>().text);
 
         // 사용자 정보 생성
-        _clientInfo = new ClientInfo();
+        //_clientInfo = new ClientInfo();
+        _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
+
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         // GPS 좌표 정보 갱신용 코루틴 시작
@@ -105,6 +108,7 @@ public class MainBehaviour : MonoBehaviour
         TextBox.GetComponent<Text>().text =
             "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
+            + "\nBearing: " + _clientInfo.CurrentBearing
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
             + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing).ToString() + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z.ToString()
@@ -115,7 +119,7 @@ public class MainBehaviour : MonoBehaviour
         foreach (ArObject entity in _arObjects.Values)
         {
             Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
-            TextBox.GetComponent<Text>().text += cameraToObject + ";";
+            TextBox.GetComponent<Text>().text += cameraToObject + "\n";
         }
 
         //+ "\nplane position: " + _arObjects[0].GameObj.transform.position.ToString()

@@ -75,6 +75,8 @@ public class ArPlane : ArObject
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,
             Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
 
+        unityPosition.y = 0; // 고도 사용 안함.
+
         GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
