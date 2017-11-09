@@ -17,7 +17,7 @@ public class ClientInfo : MonoBehaviour
 
     public GameObject MainCamera = null;
 
-    public bool OutSideOption = true;
+    public bool InsideOption = false;
     public int DistanceOption = 1;
     public string VersionInfo = "0.1";
 

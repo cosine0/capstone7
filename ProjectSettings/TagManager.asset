@@ -12,6 +12,9 @@ TagManager:
   - OptionUserId
   - OptionUserPoint
   - OptionVersionInfo
+  - OptionRadioButton
+  - OptionInsideOn
+  - OptionInsideOff
   layers:
   - Default
   - TransparentFX
