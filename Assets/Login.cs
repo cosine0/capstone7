@@ -11,6 +11,7 @@ public class JsonLoginData
     public string user_id;
     public string user_name;
     public string sessionID;
+    public int point;
 }
 
 
@@ -18,6 +19,10 @@ public class JsonLoginData
 public class Login : MonoBehaviour {
 
     private UserInfo _userInfo;
+
+    // toast
+    string toastString;
+    AndroidJavaObject currentActivity;
 
     //public GameObject idObject;
     //public string session_;
@@ -30,6 +35,7 @@ public class Login : MonoBehaviour {
     public InputField NewPwInputField;
     public InputField NameInputField;
     public GameObject CreateAccountPanelObj;
+
 
     /// <summary>
     /// LoginButton의 OnClink에 바인드. 클릭 시 로그인 코루틴을 시작한다.
@@ -81,6 +87,7 @@ public class Login : MonoBehaviour {
                 _userInfo.SessionId = loginInfo.sessionID;
                 _userInfo.UserName = loginInfo.user_name;
                 _userInfo.UserId = loginInfo.user_id;
+                _userInfo.Point = loginInfo.point;
 
                 //session_object.GetComponent<Text>().text = DataList.sessionID;
 
@@ -93,6 +100,7 @@ public class Login : MonoBehaviour {
                 // 서버로부터 현재 로그인된 user_id랑 user_name를 받아옴.
                 if (loginInfo.user_id == "")
                 {
+                    showToastOnUiThread("ID 또는 비밀번호가 틀렸습니다");
                     Debug.Log("failed login");
                 }
                 else
@@ -119,7 +127,10 @@ public class Login : MonoBehaviour {
     /// </summary>
     public void OnClickSignUp()
     {
-        StartCoroutine(SignUpCoroutine());
+        if (NewIdInputField.text == "") showToastOnUiThread("ID를 입력하세요");
+        else if (NewPwInputField.text == "") showToastOnUiThread("Password를 입력하세요");
+        else if (NameInputField.text == "") showToastOnUiThread("Name을 입력하세요");
+        else StartCoroutine(SignUpCoroutine());
         //CreateAccountPanelObj.SetActive(true);
 
         //SceneManager.LoadScene("loading");
@@ -147,4 +158,26 @@ public class Login : MonoBehaviour {
                 CreateAccountPanelObj.SetActive(false);
         }
     }
+
+    void showToastOnUiThread(string toastString)
+    {
+        AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+
+        currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        this.toastString = toastString;
+
+        currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(showToast));
+    }
+
+    void showToast()
+    {
+        Debug.Log("Running on UI thread");
+        AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        AndroidJavaClass Toast = new AndroidJavaClass("android.widget.Toast");
+        AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", toastString);
+        AndroidJavaObject toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_SHORT"));
+        toast.Call("show");
+    }
+
+
 }
