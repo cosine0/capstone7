@@ -45,6 +45,7 @@ public class MainBehaviour : MonoBehaviour
     /// 현재 사용자 정보</summary>
     
     private ClientInfo _clientInfo;
+    private UserInfo _userInfo;
 
     private void Start()
     {
