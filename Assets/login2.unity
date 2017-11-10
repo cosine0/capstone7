@@ -859,7 +859,7 @@ MonoBehaviour:
     m_AlignByGeometry: 0
     m_RichText: 0
     m_HorizontalOverflow: 1
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: 
 --- !u!222 &504124094
@@ -1239,10 +1239,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acabee5828016b242b60d0111e3bccf2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  user_id: 
-  user_name: 
-  session_id: 
-  point: -1
+  UserId: 
+  UserName: 
+  SessionId: 
+  Point: -1
 --- !u!4 &698472224
 Transform:
   m_ObjectHideFlags: 0
@@ -2030,7 +2030,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4959df2751960b14f8069a44cb98086b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  session_object: {fileID: 0}
   IdInputField: {fileID: 2089253419}
   PwInputField: {fileID: 519608105}
   NewIdInputField: {fileID: 0}
@@ -2189,7 +2188,7 @@ MonoBehaviour:
     m_AlignByGeometry: 0
     m_RichText: 0
     m_HorizontalOverflow: 1
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: 
 --- !u!222 &1635405019
@@ -2713,6 +2712,6 @@ MonoBehaviour:
   CurrentAltitude: 0
   LastGpsMeasureTime: 0
   MainCamera: {fileID: 0}
-  OutSideOption: 1
+  InsideOption: 0
   DistanceOption: 1
   VersionInfo: 0.1

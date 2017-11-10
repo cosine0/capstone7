@@ -46,16 +46,12 @@ public class MainBehaviour : MonoBehaviour
     /// <summary>
     /// 현재 사용자 정보
     /// </summary>
-    //private ClientInfo _clientInfo;
     private ClientInfo _clientInfo;
+    private UserInfo _userInfo;
 
     private void Start()
     {
-        //GameObject sessionInfo = GameObject.FindGameObjectWithTag("Loadingscenemanager");
-        //Debug.Log("꺄" + sessionInfo.GetComponent<Text>().text);
-
-        // 사용자 정보 생성
-        //_clientInfo = new ClientInfo();
+        // 사용자 정보 로드
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
 
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
@@ -64,6 +60,7 @@ public class MainBehaviour : MonoBehaviour
         StartCoroutine(GetGps());
         // AR 오브젝트 리스트 초기화
         _arObjects = new Dictionary<int, ArObject>();
+
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetPlaneList(5.0f));
@@ -183,7 +180,7 @@ public class MainBehaviour : MonoBehaviour
     }
 
     /// <summary>
-    /// _userInfo의 GPS값을 카메라 위치에 적용한다.
+    /// _clientInfo의 GPS값을 카메라 위치에 적용한다.
     /// </summary>
     private void UpdateCameraPosition()
     {
@@ -200,7 +197,11 @@ public class MainBehaviour : MonoBehaviour
             _clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude,
             _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, _clientInfo.StartingAltitude);
 
+        coordinateDifferenceFromStart.y = 0.0f;
+        coordinateDifferenceFromStart.x *= 2;
+        coordinateDifferenceFromStart.z *= 2;
         _clientInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
+        Vector3.Lerp(_clientInfo.MainCamera.transform.position, coordinateDifferenceFromStart, Time.deltaTime);
     }
 
     /// <summary>
@@ -212,35 +213,38 @@ public class MainBehaviour : MonoBehaviour
         while (true)
         {
             // 위치 서비스가 켜져 있는지 체크
-            if (!Input.location.isEnabledByUser)
-                yield break;
+            //if (!Input.location.isEnabledByUser)
+            //    yield break;
 
-            // 위치를 요청하기 전 서비스 시작
-            Input.location.Start(1f, .1f);
-            Input.compass.enabled = true;
-
-            // 서비스 초기화 대기
-            int maxWait = 20;
-            while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
+            if (!_clientInfo.OriginalValuesAreSet)
             {
-                yield return new WaitForSeconds(1);
-                maxWait--;
-            }
+                // 위치를 요청하기 전 서비스 시작
+                Input.location.Start(1.0f, 0.1f);
+                Input.compass.enabled = true;
 
-            // 서비스가 20초 동안 켜지지 않았을 때
-            if (maxWait < 1)
-            {
-                Debug.Log("Timed out");
-                yield break;
-            }
+                // 서비스 초기화 대기
+                int maxWait = 20;
+                while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
+                {
+                    yield return new WaitForSeconds(1);
+                    maxWait--;
+                }
 
-            // Connection 실패
-            if (Input.location.status == LocationServiceStatus.Failed)
-            {
-                Debug.Log("Unable to determine device location");
-                yield break;
-            }
+                // 서비스가 20초 동안 켜지지 않았을 때
+                if (maxWait < 1)
+                {
+                    Debug.Log("Timed out");
+                    yield break;
+                }
 
+                // Connection 실패
+                if (Input.location.status == LocationServiceStatus.Failed)
+                {
+                    Debug.Log("Unable to determine device location");
+                    yield break;
+                }
+            }
+            
             _clientInfo.LastGpsMeasureTime = Time.time;
 
             _clientInfo.CurrentLatitude = Input.location.lastData.latitude;
@@ -259,14 +263,16 @@ public class MainBehaviour : MonoBehaviour
 
                 _clientInfo.OriginalValuesAreSet = true;
             }
-            Input.location.Stop();
+
+            yield return new WaitForSeconds(0.3f);
+            //Input.location.Stop();
         }
     }
 
     /// <summary>
     /// 일정 시간마다 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     /// </summary>
-    private IEnumerator GetPlaneList(float intervalInSecond=5.0f)
+    private IEnumerator GetPlaneList(float intervalInSecond = 5.0f)
     {
         if (!_clientInfo.OriginalValuesAreSet)
             yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
@@ -276,7 +282,7 @@ public class MainBehaviour : MonoBehaviour
             string latitude = _clientInfo.CurrentLatitude.ToString();
             string longitude = _clientInfo.CurrentLongitude.ToString();
             string altitude = _clientInfo.CurrentAltitude.ToString();
-            
+
             // 테스트용 GPS
             //latitude = "37.450571";
             //longitude = "126.656903";
@@ -304,7 +310,6 @@ public class MainBehaviour : MonoBehaviour
 
                     JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(fromServJson);
 
-                    var a = newObjectList.data;
                     if (newObjectList.data.Length == 0)
                     {
                         // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
@@ -365,6 +370,7 @@ public class MainBehaviour : MonoBehaviour
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
+
     public void ToOptionScene()
     {
         SceneManager.LoadScene("Option");
