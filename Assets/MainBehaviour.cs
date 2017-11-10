@@ -29,20 +29,23 @@ public class JsonPlaneDataArray
 }
 
 /// <summary>
-/// 앱 시작 시 실행되는 메인 Behavior.
+/// 앱 시작 시 실행되는 메인 Behaviour.
 /// </summary>
 public class MainBehaviour : MonoBehaviour
 {
     /// <summary>
-    /// 텍스트 출력창 (디버깅용)</summary>
+    /// 텍스트 출력창 (디버깅용)
+    /// </summary>
     public GameObject TextBox;
 
     /// <summary>
-    /// 이 앱에 로드된 모든 AR 오브젝트의 목록</summary>
+    /// 이 앱에 로드된 모든 AR 오브젝트의 목록
+    /// </summary>
     private Dictionary<int, ArObject> _arObjects;
 
     /// <summary>
-    /// 현재 사용자 정보</summary>
+    /// 현재 사용자 정보
+    /// </summary>
     //private ClientInfo _clientInfo;
     private ClientInfo _clientInfo;
 
@@ -338,7 +341,7 @@ public class MainBehaviour : MonoBehaviour
                             // 새로운 ArObject 생성
                             AdInfo tmpAdInfo = new AdInfo
                             {
-                                Id = jsonArObject.ad_no,
+                                AdNumber = jsonArObject.ad_no,
                                 Name = jsonArObject.name,
                                 GpsInfo = new Vector3(jsonArObject.latitude, jsonArObject.longitude,
                                     jsonArObject.altitude),

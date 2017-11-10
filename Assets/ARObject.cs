@@ -3,9 +3,12 @@ using System;
 using System.Collections;
 using UnityEngine.Networking;
 
+/// <summary>
+/// 광고 하나를 나타내는 객체.
+/// </summary>
 public class AdInfo
 {
-    public int Id;
+    public int AdNumber;
     public string Name = "";
     public Vector3 GpsInfo;
     public float Bearing = 0.0f;
@@ -17,6 +20,9 @@ public class AdInfo
     public float Height = 1.0f;
 };
 
+/// <summary>
+/// 댓글 하나를 나타내는 객체.
+/// </summary>
 public class CommentInfo
 {
     public string Id = "";
@@ -24,7 +30,9 @@ public class CommentInfo
     public string Comment = "";
 }
 
-// abstract ARObject
+/// <summary>
+/// AR 공간상에 나타낼 수 있는 오브젝트.
+/// </summary>
 public abstract class ArObject
 {
     public int Id;
@@ -36,15 +44,21 @@ public abstract class ArObject
 
     public ArObjectType ObjectType;
 
+    /// <summary>
+    /// Unity 공간에 
+    /// </summary>
     public abstract void Create();
     public abstract void Update();
     public abstract void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
 };
 
+/// <summary>
+/// 직사각형 판 형태의 광고 오브젝트.
+/// </summary>
 public class ArPlane : ArObject
 {
     public AdInfo Info;
-    
+
     public ArPlane(AdInfo info, ClientInfo clientInfo)
     {
         Info = info;
@@ -67,7 +81,7 @@ public class ArPlane : ArObject
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
         GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
-        GameObj.GetComponent<DataContainer>().AdNum = Info.Id;
+        GameObj.GetComponent<DataContainer>().AdNum = Info.AdNumber;
 
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 

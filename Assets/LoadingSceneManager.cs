@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -7,23 +6,23 @@ using UnityEngine.Networking;
 
 public class LoadingSceneManager : MonoBehaviour
 {
-    public static string nextScene;
+    public static string NextScene;
 
     [SerializeField]
     Image progressBar;
     public GameObject infotext;
     public GameObject infotext2;
-    //Text text;
+
+    private string _nextSceneName;
 
     private void Start()
     {
         StartCoroutine(LoadScene());
     }
 
-    string nextSceneName;
     public static void LoadScene(string sceneName)
     {
-        nextScene = sceneName;
+        NextScene = sceneName;
         SceneManager.LoadScene("loadscene");
     }
 
@@ -62,19 +61,10 @@ public class LoadingSceneManager : MonoBehaviour
 
                 // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
                 string fromServJson = www.downloadHandler.text;
+                JsonLoginData dataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
 
-                //fromServJson = "{\"user_id\":\"a\"}";
-
-                JsonLoginData DataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
-
-
-
-                infotext2.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
+                infotext2.GetComponent<Text>().text = "Welcome,\n" + dataList.user_name + "!";
                 Debug.Log(infotext2.GetComponent<Text>().text);
-
-
-                //infotext.GetComponent<Text>().text = "Welcome,\n" + DataList.user_name + "!";
-
             }
         }
 
