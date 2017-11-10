@@ -42,7 +42,7 @@ public class Login : MonoBehaviour {
     }
 
     /// <summary>
-    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="Session"/> 멤버에 정보를 저장하는 코루틴.
+    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="_userInfo"/> 멤버에 정보를 저장하는 코루틴.
     /// </summary>
     private IEnumerator LoginCoroutine()
     {
