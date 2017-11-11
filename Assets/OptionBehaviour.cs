@@ -32,13 +32,13 @@ public class OptionBehaviour : MonoBehaviour {
         switch (_clientInfo.DistanceOption)
         {
             case 1:
-                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().meter_10.isOn = true;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter10.isOn = true;
                 break;
             case 2:
-                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().meter_20.isOn = true;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter20.isOn = true;
                 break;
             case 3:
-                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().meter_30.isOn = true;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter30.isOn = true;
                 break;
             default:
                 Debug.Log("Distance Option Value Error");
@@ -54,6 +54,9 @@ public class OptionBehaviour : MonoBehaviour {
 		
 	}
 
+    /// <summary>
+    ///  뒤로 가기 버튼에 바인드. 인앱 scene으로 돌아간다.
+    /// </summary>
     public void ToInAppScene()
     {
         SceneManager.LoadScene("InApp");

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311947, g: 0.38074005, b: 0.35872722, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -2032,10 +2032,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IdInputField: {fileID: 2089253419}
   PwInputField: {fileID: 519608105}
-  NewIdInputField: {fileID: 0}
-  NewPwInputField: {fileID: 0}
-  NameInputField: {fileID: 0}
-  CreateAccountPanelObj: {fileID: 0}
+  NewIdInputField: {fileID: 2044025582}
+  NewPwInputField: {fileID: 40427583}
+  NameInputField: {fileID: 292344357}
+  CreateAccountPanelObj: {fileID: 1362741414}
 --- !u!4 &1505443460
 Transform:
   m_ObjectHideFlags: 0
@@ -2715,3 +2715,10 @@ MonoBehaviour:
   InsideOption: 0
   DistanceOption: 1
   VersionInfo: 0.1
+  CrawledBearing:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  CrawlingIndex: 0

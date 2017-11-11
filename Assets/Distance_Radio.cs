@@ -1,50 +1,53 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 옵션 scene의 거리 설정 라디오 버튼 스크립트.
+/// 한 버튼 클릭시 다른 버튼이 클릭 해제되도록 함.
+/// </summary>
 public class Distance_Radio : MonoBehaviour {
 
     [Header("Toggle Object")]
-    public Toggle meter_10;
-    public Toggle meter_20;
-    public Toggle meter_30;
+    public Toggle Meter10;
+    public Toggle Meter20;
+    public Toggle Meter30;
 
     private ClientInfo _clientInfo;
 
-	// Use this for initialization
 	void Start () {
-        meter_10.onValueChanged.AddListener(meter_10_changed);
-        meter_20.onValueChanged.AddListener(meter_20_changed);
-        meter_30.onValueChanged.AddListener(meter_30_changed);
+        Meter10.onValueChanged.AddListener(Meter10Changed);
+        Meter20.onValueChanged.AddListener(Meter20Changed);
+        Meter30.onValueChanged.AddListener(Meter30Changed);
 
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
     }
-	
-	void meter_10_changed(bool value) {
-        if (meter_10.isOn)
+
+    private void Meter10Changed(bool value) {
+        if (Meter10.isOn)
         {
             _clientInfo.DistanceOption = 1;
-            meter_20.isOn = false;
-            meter_30.isOn = false;
+            Meter20.isOn = false;
+            Meter30.isOn = false;
         }
     }
 
-    void meter_20_changed(bool value)
+    private void Meter20Changed(bool value)
     {
-        if (meter_20.isOn)
+        if (Meter20.isOn)
         {
             _clientInfo.DistanceOption = 2;
-            meter_10.isOn = false;
-            meter_30.isOn = false;
+            Meter10.isOn = false;
+            Meter30.isOn = false;
         }
     }
 
-    void meter_30_changed(bool value)
+    private void Meter30Changed(bool value)
     {
-        if (meter_30.isOn)
+        if (Meter30.isOn)
         {
             _clientInfo.DistanceOption = 3;
-            meter_10.isOn = false;
-            meter_20.isOn = false;
+            Meter10.isOn = false;
+            Meter20.isOn = false;
         }
     }
 }

@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 옵션 scene의 실내외 스위치 스크립트.
+/// 클릭 시 on/off로 변경되는 애니메이션 재생, ClientInfo.InsideOption 반전
+/// </summary>
 public class InsideOptionSwitch : MonoBehaviour {
     [Header("Toggle Object")]
     public Button Outside;
@@ -10,12 +14,12 @@ public class InsideOptionSwitch : MonoBehaviour {
     // Use this for initialization
 
     [Header("ANIMATORS")]
-    public Animator onAnimator;
-    public Animator offAnimator;
+    public Animator OnAnimator;
+    public Animator OffAnimator;
 
     [Header("ANIM NAMES")]
-    public string onTransition;
-    public string offTransition;
+    public string OnTransition;
+    public string OffTransition;
 
     void Start()
     {
@@ -26,24 +30,18 @@ public class InsideOptionSwitch : MonoBehaviour {
 
         if (!_clientInfo.InsideOption)
         {
-            offAnimator.Play(offTransition);
+            OffAnimator.Play(OffTransition);
         }
         else
         {
-            onAnimator.Play(onTransition);
+            OnAnimator.Play(OnTransition);
         }
 
     }
 	
 	private void OptionToggle()
-    {
-        if (_clientInfo.InsideOption)
-        {
-            _clientInfo.InsideOption = false;
-        }
-        else
-        {
-            _clientInfo.InsideOption = true;
-        }
-    }
+	{
+        // 실내/외를 반전
+	    _clientInfo.InsideOption = !_clientInfo.InsideOption;
+	}
 }

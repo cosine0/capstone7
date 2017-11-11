@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Behaviour 클래스 안에 있지 않은 함수에서 코루틴을 사용하기 위한 싱글톤 클래스.
+/// </summary>
 public class StaticCoroutine : MonoBehaviour
 {
     private static StaticCoroutine _instance = null;
@@ -15,11 +18,17 @@ public class StaticCoroutine : MonoBehaviour
                 if (_instance == null)
                 {
                     _instance = new GameObject("StaticCoroutine").AddComponent<StaticCoroutine>();
-                    Object.DontDestroyOnLoad(_instance); // scene이 전환되어도 이 객체는 파괴되지 않도록함.
+                    DontDestroyOnLoad(_instance);  // scene이 전환되어도 이 객체는 파괴되지 않도록함.
                 }
             }
             return _instance;
         }
+    }
+
+    public static void DoCoroutine(IEnumerator coroutine)
+    {
+        // 여기서 실제 코루틴이 시작됨
+        Instance.StartCoroutine(Instance.Perform(coroutine));
     }
 
     private void Awake()
@@ -34,12 +43,6 @@ public class StaticCoroutine : MonoBehaviour
     {
         yield return StartCoroutine(coroutine);
         //Die();
-    }
-
-    public static void DoCoroutine(IEnumerator coroutine)
-    {
-        //actually this point will be start coroutine
-        Instance.StartCoroutine(Instance.Perform(coroutine));
     }
 
     private void Die()
