@@ -8,11 +8,31 @@ public class InsideOptionSwitch : MonoBehaviour {
 
     private ClientInfo _clientInfo;
     // Use this for initialization
-    void Start () {
+
+    [Header("ANIMATORS")]
+    public Animator onAnimator;
+    public Animator offAnimator;
+
+    [Header("ANIM NAMES")]
+    public string onTransition;
+    public string offTransition;
+
+    void Start()
+    {
         Outside.onClick.AddListener(OptionToggle);
         Inside.onClick.AddListener(OptionToggle);
 
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
+
+        if (!_clientInfo.InsideOption)
+        {
+            offAnimator.Play(offTransition);
+        }
+        else
+        {
+            onAnimator.Play(onTransition);
+        }
+
     }
 	
 	private void OptionToggle()

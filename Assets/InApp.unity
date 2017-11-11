@@ -1118,11 +1118,21 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1168877140584268, guid: 61c756c874f5e6f40bc3573de6cb5656, type: 2}
       propertyPath: m_TagString
-      value: Untagged
+      value: OptionInsideOff
       objectReference: {fileID: 0}
     - target: {fileID: 1218556678377288, guid: 61c756c874f5e6f40bc3573de6cb5656, type: 2}
       propertyPath: m_TagString
-      value: Untagged
+      value: OptionInsideOn
+      objectReference: {fileID: 0}
+    - target: {fileID: 225659599614724968, guid: 61c756c874f5e6f40bc3573de6cb5656,
+        type: 2}
+      propertyPath: m_IgnoreParentGroups
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 225339872469495320, guid: 61c756c874f5e6f40bc3573de6cb5656,
+        type: 2}
+      propertyPath: m_IgnoreParentGroups
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 61c756c874f5e6f40bc3573de6cb5656, type: 2}
@@ -1162,3 +1172,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 1928145626}
   Inside: {fileID: 1928145627}
+  onAnimator: {fileID: 1928145630}
+  offAnimator: {fileID: 1928145631}
+  onTransition: Standart Switch On Transition
+  offTransition: Standart Switch Off Transition
+--- !u!95 &1928145630 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 1928145624}
+--- !u!95 &1928145631 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95389186277153900, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 1928145624}

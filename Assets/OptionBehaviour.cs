@@ -26,34 +26,7 @@ public class OptionBehaviour : MonoBehaviour {
         // 사용자 포인트 필드에 값 표시
         GameObject.FindGameObjectWithTag("OptionUserPoint").GetComponent<Text>().text = "    " + _userInfo.Point;
 
-        // 실내외 스위치 객체 가져오기
-        GameObject offSwitch = GameObject.FindGameObjectWithTag("OptionInsideOff");
-        GameObject onSwitch = GameObject.FindGameObjectWithTag("OptionInsideOn");
-
-        if (_clientInfo.InsideOption)
-        {
-            // 실내일 때 - 스위치를 on 상태로 표시
-            offSwitch.GetComponent<CanvasGroup>().alpha = 0;
-            offSwitch.GetComponent<CanvasGroup>().interactable = false;
-            offSwitch.GetComponent<CanvasGroup>().blocksRaycasts = false;
-
-            onSwitch.GetComponent<CanvasGroup>().alpha = 1;
-            onSwitch.GetComponent<CanvasGroup>().interactable = true;
-            onSwitch.GetComponent<CanvasGroup>().blocksRaycasts = true;
-        }
-        else
-        {
-            // 실외일 때 - 스위치를 off 상태로 표시
-            offSwitch.GetComponent<CanvasGroup>().alpha = 1;
-            offSwitch.GetComponent<CanvasGroup>().interactable = true;
-            offSwitch.GetComponent<CanvasGroup>().blocksRaycasts = true;
-
-            onSwitch.GetComponent<CanvasGroup>().alpha = 0;
-            onSwitch.GetComponent<CanvasGroup>().interactable = false;
-            onSwitch.GetComponent<CanvasGroup>().blocksRaycasts = false;
-        }
-
-        // 거리 옵션 - 현재 설정을 UI의 버튼에 적용
+        // 현재 거리 옵션을 UI의 버튼에 적용
         switch (_clientInfo.DistanceOption)
         {
             case 1:

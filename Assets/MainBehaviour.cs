@@ -51,16 +51,23 @@ public class MainBehaviour : MonoBehaviour
 
     private void Start()
     {
-        // 글로벌 DontDestroyOnLoad 객체 사용자 정보 가져오기
+        // 글로벌 DontDestroyOnLoad 객체인 ClientInfo 가져오기
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
+        // 글로벌 DontDestroyOnLoad 객체인 UserInfo 가져오기
+        _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
+
         // scene에 있는 AR 카메라 가져오기
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         // GPS 좌표 정보 갱신용 코루틴 시작
         StartCoroutine(GetGps());
 
-        // AR 오브젝트 리스트 초기화
+        // AR 오브젝트 목록 초기화
         _arObjects = new Dictionary<int, ArObject>();
+
+        StartCoroutine(BearingCrawler());
+        StartCoroutine(UpdateBearing());
+
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(UpdateArObjectList(5.0f));
     }
@@ -106,7 +113,7 @@ public class MainBehaviour : MonoBehaviour
 
         // 위치 정보 출력 (디버그)
         TextBox.GetComponent<Text>().text =
-            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude
+            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude  + ", " + _clientInfo.StartingBearing
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
             + "\nBearing: " + _clientInfo.CurrentBearing
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
@@ -128,7 +135,7 @@ public class MainBehaviour : MonoBehaviour
     /// </summary>
     private void UpdateCameraBearing()
     {
-        // Input.compass.trueHeading의 값과 방향 매칭:
+        // Input.compass.trueHeading의 값과 지도상의 방향 매칭:
         //          0.0:
         //          북
         // 270.0:서    동:90.0
@@ -197,9 +204,7 @@ public class MainBehaviour : MonoBehaviour
 
         // GPS 고도 무시
         coordinateDifferenceFromStart.y = 0.0f;
-        //coordinateDifferenceFromStart.x *= 2;
-        //coordinateDifferenceFromStart.z *= 2;
-
+        
         // 카메라를 유니티 상의 현재 사용자 위치로 옮기기
         _clientInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
     }
@@ -265,7 +270,7 @@ public class MainBehaviour : MonoBehaviour
                 _clientInfo.OriginalValuesAreSet = true;
             }
 
-            // 측정 주기: 0.3초
+            // GPS 측정 주기: 0.3초
             yield return new WaitForSeconds(0.3f);
         }
     }
@@ -368,6 +373,49 @@ public class MainBehaviour : MonoBehaviour
             }
 
             // `intervalInSecond`초마다 한번씩 실행
+            yield return new WaitForSeconds(intervalInSecond);
+        }
+    }
+
+    private IEnumerator BearingCrawler(float intervalInSecond = 2.0f)
+    {
+        while (true) {
+            _clientInfo.CrawledBearing[_clientInfo.CrawlingIndex] = ((Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y) % 360 + 360) % 360;
+            _clientInfo.CrawlingIndex++;
+            _clientInfo.CrawlingIndex = _clientInfo.CrawlingIndex % Constants.BearingCrawlingNum;
+
+            yield return new WaitForSeconds(intervalInSecond);
+        }
+    }
+
+    private IEnumerator UpdateBearing(float intervalInSecond = 10.0f)
+    {
+        while (true)
+        {
+            // Bearing값 평균 계산
+            float bearingAverage = 0.0f;
+
+            for (int i = 0; i < Constants.BearingCrawlingNum; i++)
+            {
+                bearingAverage += _clientInfo.CrawledBearing[i];
+            }
+            
+            bearingAverage += _clientInfo.StartingBearing;
+
+            bearingAverage /= (Constants.BearingCrawlingNum + 1);
+
+            // 오브젝트 회전
+            float reverseRotate = ((_clientInfo.StartingBearing - bearingAverage) % 360 + 360) % 360;
+
+            foreach (var arObject in _arObjects.Values)
+            {
+                arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
+                    , new Vector3(0.0f, 1.0f, 0.0f), -bearingAverage); // 생성시 카메라 포지션 기준 회전
+            }
+
+            // Bearing값 최신 정보로 반영
+            _clientInfo.StartingBearing = bearingAverage;
+
             yield return new WaitForSeconds(intervalInSecond);
         }
     }

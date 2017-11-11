@@ -103,6 +103,8 @@ public class ArPlane : ArObject
         GameObj.name = Info.Name;
         GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
         GameObj.GetComponent<DataContainer>().AdNum = Info.AdNumber;
+        GameObj.GetComponent<DataContainer>().CreatedCameraPosition = 
+            new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
 
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
@@ -165,7 +167,7 @@ public class ArComment : ArObject
 
     public override void Destroy()
     {
-        MonoBehaviour.Destroy(GameObj); // object 제거, Null ptr 설정
+        MonoBehaviour.Destroy(GameObj);
         GameObj = null;
         Comment = null;
     }
