@@ -41,9 +41,9 @@ public class JsonPlaneDataArray
 /// </summary>
 public class MainBehaviour : MonoBehaviour
 {
-    // toast
-    string _toastString;
-    AndroidJavaObject currentActivity;
+    // Toast에 사용되는 임시 객체
+    private string _toastString;
+    private AndroidJavaObject _currentActivity;
 
     /// <summary>
     /// 텍스트 출력창 (디버깅용)
@@ -56,9 +56,12 @@ public class MainBehaviour : MonoBehaviour
     private Dictionary<int, ArObject> _arObjects;
 
     /// <summary>
-    /// 현재 사용자 정보
+    /// 클라이언트 위치, 옵션 정보
     /// </summary>
     private ClientInfo _clientInfo;
+    /// <summary>
+    /// 현재 로그인한 사용자 정보
+    /// </summary>
     private UserInfo _userInfo;
 
     JsonPointData _pointData;
@@ -503,7 +506,7 @@ public class MainBehaviour : MonoBehaviour
                                 else
                                 {
                                     Debug.Log("earn point!");
-                                    showToastOnUiThread("earn point: " + pointNumber);
+                                    ShowToastOnUiThread("earn point: " + pointNumber);
                                 }
                             }
 
@@ -511,10 +514,10 @@ public class MainBehaviour : MonoBehaviour
                         }
                     }
 
-                    StartCoroutine(getPointCoroutine());
+                    StartCoroutine(GetPointCoroutine());
 
                 }
-                else showToastOnUiThread("You already clicked!");
+                else ShowToastOnUiThread("You already clicked!");
             }
         }
     }
@@ -528,27 +531,27 @@ public class MainBehaviour : MonoBehaviour
         SceneManager.LoadScene("Option");
     }
 
-    void showToastOnUiThread(string toastString)
+    void ShowToastOnUiThread(string toastString)
     {
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
-        currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         this._toastString = toastString;
 
-        currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(showToast));
+        _currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(ShowToast));
     }
 
-    void showToast()
+    void ShowToast()
     {
         Debug.Log("Running on UI thread");
-        AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
         AndroidJavaClass Toast = new AndroidJavaClass("android.widget.Toast");
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);
         AndroidJavaObject toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_SHORT"));
         toast.Call("show");
     }
 
-    private IEnumerator getPointCoroutine()
+    private IEnumerator GetPointCoroutine()
     {
 
         //showToastOnUiThread("adnumber "+adNumber);

@@ -46,8 +46,6 @@ public class Login : MonoBehaviour {
     public void OnClickLogin()
     {
         StartCoroutine(LoginCoroutine());
-        //SceneManager.LoadScene("loading");
-        //SceneManager.LoadScene("loadscene");
     }
 
     /// <summary>
@@ -75,8 +73,6 @@ public class Login : MonoBehaviour {
             }
             else
             {
-                Debug.Log(www.downloadHandler.text);
-
                 // 서버에서 Json 응답으로 유저 정보를 UserInfo 오브젝트에 적용
                 string responseJsonString = www.downloadHandler.text;
                 
@@ -97,6 +93,7 @@ public class Login : MonoBehaviour {
                 else
                 {
                     Debug.Log("successed login");
+                    PwInputField.text = "";
                     SceneManager.LoadScene("loadscene");
                 }
 
@@ -118,9 +115,9 @@ public class Login : MonoBehaviour {
     /// </summary>
     public void OnClickSignUp()
     {
-        if (NewIdInputField.text == "") ShowToastOnUiThread("Input ID");
+        if (NameInputField.text == "") ShowToastOnUiThread("Input Name");
+        else if (NewIdInputField.text == "") ShowToastOnUiThread("Input ID");
         else if (NewPwInputField.text == "") ShowToastOnUiThread("Input Password");
-        else if (NameInputField.text == "") ShowToastOnUiThread("Input Name");
         else StartCoroutine(SignUpCoroutine());
     }
 
@@ -130,9 +127,9 @@ public class Login : MonoBehaviour {
     private IEnumerator SignUpCoroutine()
     {
         WWWForm signUpForm = new WWWForm();
+        signUpForm.AddField("Input_name", NameInputField.text);
         signUpForm.AddField("Input_user", NewIdInputField.text);
         signUpForm.AddField("Input_pass", NewPwInputField.text);
-        signUpForm.AddField("Input_name", NameInputField.text);
 
         // 회원가입 정보를 서버에 POST
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/createaccount.php", signUpForm))
@@ -148,6 +145,9 @@ public class Login : MonoBehaviour {
             else
             {
                 ShowToastOnUiThread("Sign up succeeded.");
+                NameInputField.text = "";
+                NewIdInputField.text = "";
+                NewPwInputField.text = "";
             }
             // 회원가입 창 감추기
             CreateAccountPanelObj.SetActive(false);
