@@ -21,6 +21,9 @@ public class ClientInfo : MonoBehaviour
     public int DistanceOption = 1;
     public string VersionInfo = "0.1";
 
+    public float []CrawledBearing = new float[Constants.BearingCrawlingNum];
+    public int CrawlingIndex = 0;
+
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);

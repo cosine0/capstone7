@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -1642,6 +1642,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 973041393}
   Inside: {fileID: 973041394}
+  onAnimator: {fileID: 973041395}
+  offAnimator: {fileID: 973041396}
+  onTransition: Standart Switch On Transition
+  offTransition: Standart Switch Off Transition
 --- !u!114 &973041393 stripped
 MonoBehaviour:
   m_PrefabParentObject: {fileID: 114837593701928232, guid: 61c756c874f5e6f40bc3573de6cb5656,
@@ -1654,6 +1658,16 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 973041390}
   m_Script: {fileID: 1392445389, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+--- !u!95 &973041395 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 973041390}
+--- !u!95 &973041396 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95389186277153900, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 973041390}
 --- !u!1 &1039124661
 GameObject:
   m_ObjectHideFlags: 0

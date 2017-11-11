@@ -51,6 +51,8 @@ public class MainBehaviour : MonoBehaviour
     {
         // 사용자 정보 로드
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
+        // 유저 정보 로드
+        _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
@@ -59,6 +61,8 @@ public class MainBehaviour : MonoBehaviour
         // AR 오브젝트 리스트 초기화
         _arObjects = new Dictionary<int, ArObject>();
 
+        StartCoroutine(BearingCrawler());
+        StartCoroutine(UpdateBearing());
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetPlaneList(5.0f));
@@ -104,11 +108,11 @@ public class MainBehaviour : MonoBehaviour
 
         //위치 정보 출력(디버그)
         TextBox.GetComponent<Text>().text =
-            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude
+            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude  + ", " + _clientInfo.StartingBearing
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
             + "\nBearing: " + _clientInfo.CurrentBearing
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.StartingBearing).ToString() + ", "
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x.ToString() + ", " + _clientInfo.MainCamera.transform.eulerAngles.y + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z.ToString()
             + "\nObject Count: " + _arObjects.Count
             + "\nCamera to object: ";
@@ -196,8 +200,7 @@ public class MainBehaviour : MonoBehaviour
             _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, _clientInfo.StartingAltitude);
 
         coordinateDifferenceFromStart.y = 0.0f;
-        coordinateDifferenceFromStart.x *= 2;
-        coordinateDifferenceFromStart.z *= 2;
+        
         _clientInfo.MainCamera.transform.position = coordinateDifferenceFromStart;
         Vector3.Lerp(_clientInfo.MainCamera.transform.position, coordinateDifferenceFromStart, Time.deltaTime);
     }
@@ -365,6 +368,49 @@ public class MainBehaviour : MonoBehaviour
             }
 
             // 5초에 한번씩 실행
+            yield return new WaitForSeconds(intervalInSecond);
+        }
+    }
+
+    private IEnumerator BearingCrawler(float intervalInSecond = 2.0f)
+    {
+        while (true) {
+            _clientInfo.CrawledBearing[_clientInfo.CrawlingIndex] = ((Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y) % 360 + 360) % 360;
+            _clientInfo.CrawlingIndex++;
+            _clientInfo.CrawlingIndex = _clientInfo.CrawlingIndex % Constants.BearingCrawlingNum;
+
+            yield return new WaitForSeconds(intervalInSecond);
+        }
+    }
+
+    private IEnumerator UpdateBearing(float intervalInSecond = 10.0f)
+    {
+        while (true)
+        {
+            // Bearing값 평균 계산
+            float bearingAverage = 0.0f;
+
+            for (int i = 0; i < Constants.BearingCrawlingNum; i++)
+            {
+                bearingAverage += _clientInfo.CrawledBearing[i];
+            }
+            
+            bearingAverage += _clientInfo.StartingBearing;
+
+            bearingAverage /= (Constants.BearingCrawlingNum + 1);
+
+            // 오브젝트 회전
+            float reverseRotate = ((_clientInfo.StartingBearing - bearingAverage) % 360 + 360) % 360;
+
+            foreach (var arObject in _arObjects.Values)
+            {
+                arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
+                    , new Vector3(0.0f, 1.0f, 0.0f), -bearingAverage); // 생성시 카메라 포지션 기준 회전
+            }
+
+            // Bearing값 최신 정보로 반영
+            _clientInfo.StartingBearing = bearingAverage;
+
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
