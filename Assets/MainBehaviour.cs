@@ -23,6 +23,14 @@ public class JsonPlaneData
 }
 
 [System.Serializable]
+public class JsonPointData
+{
+    public int pointReward;
+    public bool clickLogFlag;
+    
+}
+
+[System.Serializable]
 public class JsonPlaneDataArray
 {
     public JsonPlaneData[] data;
@@ -33,6 +41,10 @@ public class JsonPlaneDataArray
 /// </summary>
 public class MainBehaviour : MonoBehaviour
 {
+    // toast
+    string toastString;
+    AndroidJavaObject currentActivity;
+
     /// <summary>
     /// 텍스트 출력창 (디버깅용)
     /// </summary>
@@ -48,6 +60,8 @@ public class MainBehaviour : MonoBehaviour
     /// </summary>
     private ClientInfo _clientInfo;
     private UserInfo _userInfo;
+
+    JsonPointData _pointData;
 
     private void Start()
     {
@@ -100,7 +114,12 @@ public class MainBehaviour : MonoBehaviour
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 연다.
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
+                    int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                    StartCoroutine(pointCoroutine(adNumber));
                     Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                    
+
+
                     break;
 
                 case TouchPhase.Canceled:
@@ -419,6 +438,87 @@ public class MainBehaviour : MonoBehaviour
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
+    
+    private IEnumerator pointCoroutine(int adNumber) {
+
+        //showToastOnUiThread("adnumber "+adNumber);
+
+        string userID = _userInfo.UserId;
+        //showToastOnUiThread("userid " + userID);
+        JsonPointData pointInfo;
+        string fromServJson;
+        WWWForm checkLogForm = new WWWForm();
+        checkLogForm.AddField("Input_user", userID);
+        checkLogForm.AddField("Input_ad", adNumber);
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/check_log.php", checkLogForm))
+        {
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+                Debug.Log(www.error);
+            else
+            {
+                
+                //Debug.Log("check clickLogFlag!");
+
+                fromServJson = www.downloadHandler.text;
+                pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
+                
+                //showToastOnUiThread("check clickLogFlag!" + pointInfo.clickLogFlag);
+
+                if (pointInfo.clickLogFlag)
+                {
+                    WWWForm adInfoForm = new WWWForm();
+                    adInfoForm.AddField("Input_ad", adNumber);
+
+
+                    using (UnityWebRequest www2 = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/adinfo.php", adInfoForm))
+                    {
+                        yield return www2.Send();
+
+                        if (www2.isNetworkError || www2.isHttpError)
+                            Debug.Log(www2.error);
+                        //showToastOnUiThread(www2.error);
+                        else
+                        {
+                            Debug.Log("get point!");
+
+                            fromServJson = www2.downloadHandler.text;
+                            pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
+                            
+                            int pointNumber = pointInfo.pointReward;
+                            //showToastOnUiThread("user id: "+userID+", ad"+adNumber+"의 adpoint: " + pointNumber);
+                            WWWForm pointForm = new WWWForm();
+                            pointForm.AddField("Input_point", pointNumber);
+                            pointForm.AddField("Input_user", userID);
+                            pointForm.AddField("Input_ad", adNumber);
+
+                            using (UnityWebRequest www3 = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/earn_point.php", pointForm))
+                            {
+                                yield return www3.Send();
+
+                                if (www3.isNetworkError || www3.isHttpError)
+                                    Debug.Log(www3.error);
+                                else
+                                {
+                                    Debug.Log("earn point!");
+                                    showToastOnUiThread("earn point: "+pointNumber);
+                                }
+                            }
+
+
+                        }
+                    }
+
+                    StartCoroutine(getPointCoroutine());
+
+                }
+                else showToastOnUiThread("You already clicked!");
+            }
+        }
+    }
+
 
     /// <summary>
     /// 옵션 버튼에 바인드. 옵션 버튼을 눌렀을 때 옵션 scene으로 이동한다.
@@ -426,5 +526,52 @@ public class MainBehaviour : MonoBehaviour
     public void ToOptionScene()
     {
         SceneManager.LoadScene("Option");
+    }
+
+    void showToastOnUiThread(string toastString)
+    {
+        AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+
+        currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        this.toastString = toastString;
+
+        currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(showToast));
+    }
+
+    void showToast()
+    {
+        Debug.Log("Running on UI thread");
+        AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        AndroidJavaClass Toast = new AndroidJavaClass("android.widget.Toast");
+        AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", toastString);
+        AndroidJavaObject toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_SHORT"));
+        toast.Call("show");
+    }
+
+    private IEnumerator getPointCoroutine()
+    {
+
+        //showToastOnUiThread("adnumber "+adNumber);
+
+        string userID = _userInfo.UserId;
+
+
+        string fromServJson;
+        WWWForm checkPointForm = new WWWForm();
+        checkPointForm.AddField("Input_user", userID);
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/show_point.php", checkPointForm))
+        {
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+                Debug.Log(www.error);
+            else
+            {
+                fromServJson = www.downloadHandler.text;
+                _pointData = JsonUtility.FromJson<JsonPointData>(fromServJson);
+                _userInfo.Point = _pointData.pointReward;
+            }
+        }
     }
 }

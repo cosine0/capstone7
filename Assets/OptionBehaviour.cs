@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -47,7 +49,8 @@ public class OptionBehaviour : MonoBehaviour {
         GameObject.FindGameObjectWithTag("OptionVersionInfo").GetComponent<Text>().text = _clientInfo.VersionInfo;
     }
 	
-	void Update () {
+	void Update ()
+    {
 		
 	}
 
