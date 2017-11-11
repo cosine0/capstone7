@@ -179,5 +179,7 @@ public class Login : MonoBehaviour {
         toast.Call("show");
     }
 
-
+    public void OnClickPreviousButton() {
+        CreateAccountPanelObj.SetActive(false);
+    }
 }
