@@ -15,6 +15,8 @@ TagManager:
   - OptionRadioButton
   - OptionInsideOn
   - OptionInsideOff
+  - CommentCanvas
+  - InAppCanvas
   layers:
   - Default
   - TransparentFX

@@ -47,6 +47,9 @@ public class MainBehaviour : MonoBehaviour
     private ClientInfo _clientInfo;
     private UserInfo _userInfo;
 
+    public GameObject inAppCanvas;
+    public GameObject commentCanvas;
+
     private void Start()
     {
         // 사용자 정보 로드
@@ -95,7 +98,23 @@ public class MainBehaviour : MonoBehaviour
                 case TouchPhase.Ended:
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane) {
+                        Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                    }
+                    else if(hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                    {
+                        //commentCanvas.SetActive(true);
+                        //inAppCanvas.SetActive(false);
+
+                        // 연관 광고 정보 패싱
+                        commentCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                        // CreateCommentView();
+                        // - list clear
+                        // - get comment list
+                        // - list add
+                        // - scroll view area calculate
+                    }
+
                     break;
 
                 case TouchPhase.Canceled:
@@ -418,5 +437,15 @@ public class MainBehaviour : MonoBehaviour
     public void ToOptionScene()
     {
         SceneManager.LoadScene("Option");
+    }
+    public void HideCommnetView()
+    {
+        commentCanvas.SetActive(false);
+        inAppCanvas.SetActive(true);
+    }
+    public void TestButton()
+    {
+        commentCanvas.SetActive(true);
+        inAppCanvas.SetActive(false);
     }
 }

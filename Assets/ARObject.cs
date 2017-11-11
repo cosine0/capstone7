@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using UnityEngine.Networking;
 
+public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
+
 public class AdInfo
 {
     public int Id;
@@ -28,7 +30,6 @@ public class CommentInfo
 public abstract class ArObject
 {
     public int Id;
-    public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
 
     public GameObject GameObj;
 
@@ -70,6 +71,7 @@ public class ArPlane : ArObject
         GameObj.GetComponent<DataContainer>().AdNum = Info.Id;
         GameObj.GetComponent<DataContainer>().CreatedCameraPosition = 
             new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
+        GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.AdPlane;
 
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet); // 매번 확인하지 않도록 초기에 한번만 확인하도록 보완이 필요
 
