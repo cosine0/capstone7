@@ -14,7 +14,6 @@ public class JsonLoginData
 }
 
 
-
 public class Login : MonoBehaviour {
 
     private UserInfo _userInfo;

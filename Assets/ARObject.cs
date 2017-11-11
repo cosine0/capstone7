@@ -36,20 +36,41 @@ public class CommentInfo
 public abstract class ArObject
 {
     public int Id;
+    /// <summary>
+    /// 오브젝트의 종류를 나타내는 타입: 광고판, 댓글, 3D 오브젝트
+    /// </summary>
     public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
-
+    
+    /// <summary>
+    /// 오브젝트 종류
+    /// </summary>
+    public ArObjectType ObjectType;
+    
+    /// <summary>
+    /// Unity 공간 상에 있는 물체.
+    /// </summary>
     public GameObject GameObj;
-
+    
+    /// <summary>
+    /// 글로벌 DontDestroyOnLoad 오브젝트인 클라이언트 정보
+    /// </summary>
     public ClientInfo ClientInfoObj;
 
-    public ArObjectType ObjectType;
 
     /// <summary>
-    /// Unity 공간에 
+    /// Unity 공간에 물체를 생성해서 <see cref="GameObj"/>멤버로 가져오는 함수.
     /// </summary>
     public abstract void Create();
+
+    /// <summary>
+    /// 물체의 애니메이션 등 업데이트를 처리하는 함수.
+    /// </summary>
     public abstract void Update();
-    public abstract void Destroy();// delete가 없음 null로 수정해서 참조 횟수를 줄임
+    
+    /// <summary>
+    /// Unity 공간에서 <see cref="GameObj"/>에 있는 물체를 제거하는 함수.
+    /// </summary>
+    public abstract void Destroy();
 };
 
 /// <summary>
@@ -94,7 +115,7 @@ public class ArPlane : ArObject
 
         GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
         GameObj.transform.position = unityPosition;
-        GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f); // gimbal lock이 발생하는 것 같음 90 0 -180으로 됨
+        GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
         GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.StartingBearing); // 카메라 포지션 기준 회전
         // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
@@ -115,7 +136,7 @@ public class ArPlane : ArObject
 
     public override void Destroy()
     {
-        MonoBehaviour.Destroy(GameObj); // object 제거, Null ptr 설정
+        MonoBehaviour.Destroy(GameObj);
         GameObj = null;
         Info = null;
     }
