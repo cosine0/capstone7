@@ -69,7 +69,7 @@ public class MainBehaviour : MonoBehaviour
         StartCoroutine(UpdateBearing());
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
-        StartCoroutine(UpdateArObjectList(5.0f));
+        StartCoroutine(GetArObjectList(5.0f));
     }
 
     private void Update()
@@ -279,7 +279,7 @@ public class MainBehaviour : MonoBehaviour
     /// 일정 시간마다 서버에 사용자의 GPS정보를 HTTP request로 보내서 현재 위치 주변에 있는 Plane List를 받아 온다.
     /// 그 리스트를 이용해 <see cref="_arObjects"/>를 업데이트한다.
     /// </summary>
-    private IEnumerator UpdateArObjectList(float intervalInSecond = 5.0f)
+    private IEnumerator GetArObjectList(float intervalInSecond = 5.0f)
     {
         // GPS 초기화가 될 때까지 대기
         if (!_clientInfo.OriginalValuesAreSet)
