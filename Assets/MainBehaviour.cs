@@ -48,7 +48,7 @@ public class MainBehaviour : MonoBehaviour
     private UserInfo _userInfo;
 
     public GameObject inAppCanvas;
-    public GameObject commentCanvas;
+    public GameObject commentViewCanvas;
 
     private void Start()
     {
@@ -69,6 +69,7 @@ public class MainBehaviour : MonoBehaviour
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetPlaneList(5.0f));
+        StartCoroutine(GetCommentCanvas(5.0f));
     }
 
     private void Update()
@@ -107,7 +108,7 @@ public class MainBehaviour : MonoBehaviour
                         //inAppCanvas.SetActive(false);
 
                         // 연관 광고 정보 패싱
-                        commentCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                        commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
                         // CreateCommentView();
                         // - list clear
                         // - get comment list
@@ -391,6 +392,18 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
+    private IEnumerator GetCommentCanvas(float intervalInSecond = 5.0f)
+    {
+        WWWForm form = new WWWForm();
+        
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
+        {
+
+        }
+
+         yield return new WaitForSeconds(intervalInSecond);
+    }
+
     private IEnumerator BearingCrawler(float intervalInSecond = 2.0f)
     {
         while (true) {
@@ -440,12 +453,12 @@ public class MainBehaviour : MonoBehaviour
     }
     public void HideCommnetView()
     {
-        commentCanvas.SetActive(false);
+        commentViewCanvas.SetActive(false);
         inAppCanvas.SetActive(true);
     }
     public void TestButton()
     {
-        commentCanvas.SetActive(true);
+        commentViewCanvas.SetActive(true);
         inAppCanvas.SetActive(false);
     }
 }

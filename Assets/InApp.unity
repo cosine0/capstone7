@@ -546,8 +546,8 @@ GameObject:
   - component: {fileID: 437149389}
   - component: {fileID: 437149393}
   m_Layer: 5
-  m_Name: CommentCanvas
-  m_TagString: CommentCanvas
+  m_Name: CommentViewCanvas
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -669,7 +669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TextBox: {fileID: 1185371555}
   inAppCanvas: {fileID: 1178027719}
-  commentCanvas: {fileID: 437149388}
+  commentViewCanvas: {fileID: 437149388}
 --- !u!4 &486120969
 Transform:
   m_ObjectHideFlags: 0
@@ -2049,7 +2049,7 @@ GameObject:
   - component: {fileID: 1178027720}
   m_Layer: 5
   m_Name: InAppCanvas
-  m_TagString: InAppCanvas
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4302,7 +4302,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2119946742}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 437149393}
+        m_MethodName: LeaveComment
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &2119946742

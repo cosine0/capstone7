@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using UnityEngine.Networking;
 
-public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
+public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArCommentCanvas, Ar3dObject, ArComment };
 
 public class AdInfo
 {
@@ -45,6 +45,7 @@ public abstract class ArObject
 public class ArPlane : ArObject
 {
     public AdInfo Info;
+    public GameObject CommentCanvas;
     
     public ArPlane(AdInfo info, ClientInfo clientInfo)
     {
@@ -67,6 +68,7 @@ public class ArPlane : ArObject
         ObjectType = ArObjectType.AdPlane; // 타입 지정
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
+        // Plane object의 DataContainer에 값 패싱
         GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
         GameObj.GetComponent<DataContainer>().AdNum = Info.Id;
         GameObj.GetComponent<DataContainer>().CreatedCameraPosition = 
@@ -111,24 +113,23 @@ public class ArPlane : ArObject
     }
 }
 
-public class ArComment : ArObject
+public class ArCommentCanvas : ArObject
 {
-    public CommentInfo Comment { get; set; }
+    Canvas arCommentCanvas;
 
-    public ArComment(CommentInfo info)
+    public ArCommentCanvas()
     {
-        Comment = info;
+        
     }
 
     public override void Create()
     {
         // Mesh Type Definition
-        ObjectType = ArObjectType.ArComment;
+        ObjectType = ArObjectType.ArCommentCanvas;
     }
 
     public override void Update()
     {
-        // Billboard? - calculate camera's inverse matrix
         throw new NotImplementedException();
     }
 
@@ -136,6 +137,5 @@ public class ArComment : ArObject
     {
         MonoBehaviour.Destroy(GameObj); // object 제거, Null ptr 설정
         GameObj = null;
-        Comment = null;
     }
 }

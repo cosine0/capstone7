@@ -5,13 +5,8 @@ using UnityEngine;
 public class CommentCanvasBehaviour : MonoBehaviour {
     public int adNum;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public void LeaveComment()
+    {
+
+    }
 }
