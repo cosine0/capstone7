@@ -10,8 +10,10 @@ public class horseAnimation : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        //Instantiate(Resources.Load("Prefabs/Butterfly"), new Vector3(6, -3, 0), Quaternion.identity);
+        //Instantiate(Resources.Load("Prefabs/Stones"), new Vector3(15, 4, 1), Quaternion.identity);
         //horseAnim = gameObject.GetComponent<Animator>();
-        
+
     }
 
     // Update is called once per frame

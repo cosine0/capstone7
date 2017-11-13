@@ -381,83 +381,6 @@ public class MainBehaviour : MonoBehaviour
                 }
             }
 
-
-            // get3dObject
-
-            using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/get3D_distance.php", form))
-            {
-                yield return www.Send();
-
-                if (www.isNetworkError || www.isHttpError)
-                {
-                    Debug.Log(www.error);
-                    // TODO: 필요시 재시도
-                }
-                else
-                {
-                    // Json을 받아와 오브젝트로 변환
-                    string fromServJson = www.downloadHandler.text;
-                    Debug.Log(fromServJson);
-
-                    JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(fromServJson);
-
-                    var a = newObjectList.data;
-                    if (newObjectList.data.Length == 0)
-                    {
-                        // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
-                        foreach (var arObject in _arObjects.Values)
-                            arObject.Destroy();
-
-                        _arObjects.Clear();
-                    }
-                    else
-                    {
-                        // 오브젝트 ID 모으기
-                        var newObjectIds = new List<int>();
-                        foreach (var newObject in newObjectList.data)
-                            newObjectIds.Add(newObject.ad_no);
-
-                        // 받아온 리스트 없는 ArObject 삭제
-                        foreach (var arObject in _arObjects)
-                        {
-                            if (!newObjectIds.Contains(arObject.Key))
-                            {
-                                arObject.Value.Destroy();
-                                _arObjects.Remove(arObject.Key);
-                            }
-                        }
-
-                        // 받아온 리스트에서 새로 생긴 ArObject 생성
-                        foreach (JsonPlaneData jsonArObject in newObjectList.data)
-                        {
-                            // 기존 리스트에 이미 있는 경우 안 만듦
-                            if (_arObjects.Keys.Contains(jsonArObject.ad_no))
-                                continue;
-
-                            // 새로운 ArObject 생성
-                            AdInfo tmpAdInfo = new AdInfo
-                            {
-                                Id = jsonArObject.ad_no,
-                                Name = jsonArObject.name,
-                                GpsInfo = new Vector3(jsonArObject.latitude, jsonArObject.longitude,
-                                    jsonArObject.altitude),
-                                Bearing = jsonArObject.bearing,
-                                TextureUrl = jsonArObject.texture_url,
-                                BannerUrl = jsonArObject.banner_url,
-                                TextAlternateToTexture = "",
-                                AdTexture = null,
-                                Width = jsonArObject.width,
-                                Height = jsonArObject.height
-                            };
-
-                            // texture url정보 받아와서 수정 필요.
-                            _arObjects[jsonArObject.ad_no] = new ArPlane(tmpAdInfo, _clientInfo);
-                        }
-                    }
-                }
-            }
-
-
             // 5초에 한번씩 실행
             yield return new WaitForSeconds(intervalInSecond);
         }
@@ -596,7 +519,7 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-    public void onClickBtn()
+    public void onClickHorseBtn()
     {
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
         //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
@@ -604,6 +527,21 @@ public class MainBehaviour : MonoBehaviour
         //createObject("horse", 40, -1, 0);
     }
 
+    public void onClickGift1Btn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("gift_1", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+    public void onClickButterflyBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("Butterfly", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
 
     public void createObject(string typeName, Vector3 unityPosition)
     {
