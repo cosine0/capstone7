@@ -365,7 +365,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TextBox: {fileID: 1185371555}
-  OptionPanel: {fileID: 1194930816}
 --- !u!4 &486120969
 Transform:
   m_ObjectHideFlags: 0
@@ -1874,7 +1873,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10f8bd5a7e6d0044f937e4a8fba07e58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OptionPanel: {fileID: 1194930816}
 --- !u!4 &1219219438
 Transform:
   m_ObjectHideFlags: 0

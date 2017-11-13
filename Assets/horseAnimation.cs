@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class horseAnimation : MonoBehaviour
 {
-    public GameObject obj;
+    //public GameObject obj;
     //public Animator horseAnim;
-
+    
     // Use this for initialization
     void Start()
     {
         //horseAnim = gameObject.GetComponent<Animator>();
+        
     }
 
     // Update is called once per frame
@@ -24,9 +25,18 @@ public class horseAnimation : MonoBehaviour
         //}
     }
 
-    public void createObject() {
-        Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
+    public void onClickBtn()
+    {
+        //createObject("horse", _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        createObject("momobject", 70, -1, 0);
     }
 
-   
+
+    public void createObject(string objName, float x, float y, float z)
+    {
+        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
+        Instantiate(Resources.Load("Prefabs/" + objName), new Vector3(x, y, z), Quaternion.identity);
+    }
+
+
 }

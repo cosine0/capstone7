@@ -114,7 +114,7 @@ public class MainBehaviour : MonoBehaviour
                     int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
                     StartCoroutine(pointCoroutine(adNumber));
                     Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
-                    
+
 
 
                     break;
@@ -196,7 +196,7 @@ public class MainBehaviour : MonoBehaviour
                 }
             }
         }
-        
+
         Vector3 newCameraAngle = _clientInfo.MainCamera.transform.eulerAngles;
         newCameraAngle.y = _clientInfo.CurrentBearing;
         _clientInfo.MainCamera.transform.eulerAngles = newCameraAngle;
@@ -286,7 +286,7 @@ public class MainBehaviour : MonoBehaviour
     /// <summary>
     /// 일정 시간마다 서버에 사용자의 GPS정보로 HTTP request를 보내서 현재 위치 주변에 있는 Plane List를 받아온다.
     /// </summary>
-    private IEnumerator GetPlaneList(float intervalInSecond=5.0f)
+    private IEnumerator GetPlaneList(float intervalInSecond = 5.0f)
     {
         if (!_clientInfo.OriginalValuesAreSet)
             yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
@@ -296,7 +296,7 @@ public class MainBehaviour : MonoBehaviour
             string latitude = _clientInfo.CurrentLatitude.ToString();
             string longitude = _clientInfo.CurrentLongitude.ToString();
             string altitude = _clientInfo.CurrentAltitude.ToString();
-            
+
             // 테스트용 GPS
             //latitude = "37.450571";
             //longitude = "126.656903";
@@ -384,7 +384,7 @@ public class MainBehaviour : MonoBehaviour
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
-    
+
     private IEnumerator pointCoroutine(int adNumber) {
 
         //showToastOnUiThread("adnumber "+adNumber);
@@ -405,12 +405,12 @@ public class MainBehaviour : MonoBehaviour
                 Debug.Log(www.error);
             else
             {
-                
+
                 //Debug.Log("check clickLogFlag!");
 
                 fromServJson = www.downloadHandler.text;
                 pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
-                
+
                 //showToastOnUiThread("check clickLogFlag!" + pointInfo.clickLogFlag);
 
                 if (pointInfo.clickLogFlag)
@@ -432,7 +432,7 @@ public class MainBehaviour : MonoBehaviour
 
                             fromServJson = www2.downloadHandler.text;
                             pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
-                            
+
                             int pointNumber = pointInfo.pointReward;
                             //showToastOnUiThread("user id: "+userID+", ad"+adNumber+"의 adpoint: " + pointNumber);
                             WWWForm pointForm = new WWWForm();
@@ -449,7 +449,7 @@ public class MainBehaviour : MonoBehaviour
                                 else
                                 {
                                     Debug.Log("earn point!");
-                                    showToastOnUiThread("earn point: "+pointNumber);
+                                    showToastOnUiThread("earn point: " + pointNumber);
                                 }
                             }
 
@@ -467,7 +467,7 @@ public class MainBehaviour : MonoBehaviour
 
     public void ToOptionScene()
     {
-        
+
         SceneManager.LoadScene("Option");
     }
 
@@ -517,4 +517,52 @@ public class MainBehaviour : MonoBehaviour
             }
         }
     }
+
+    public void onClickBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("horse", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+
+    public void createObject(string typeName, Vector3 unityPosition)
+    {
+        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
+        Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity);
+        
+        string x = _clientInfo.CurrentLatitude.ToString();
+        string y = _clientInfo.CurrentLongitude.ToString();
+        string z = _clientInfo.CurrentAltitude.ToString();
+        string bearing = _clientInfo.CurrentBearing.ToString();
+        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing));
+
+    }
+
+    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
+    {
+        
+        WWWForm form = new WWWForm();
+        form.AddField("latitude", x);
+        form.AddField("longitude", y);
+        form.AddField("altitude", z);
+        form.AddField("typeName", typeName);
+        form.AddField("user", id);
+        form.AddField("bearing", bearing);
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
+        {
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                Debug.Log("create 3dObject!");
+            }
+        }
+    }
+
 }
