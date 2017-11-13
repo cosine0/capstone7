@@ -16,6 +16,7 @@ public class ClientInfo : MonoBehaviour
     public float LastGpsMeasureTime = 0.0f;
 
     public GameObject MainCamera = null;
+    public GameObject LodingCanvas = null;
 
     public bool InsideOption = false;
     public int DistanceOption = 1;
@@ -27,5 +28,7 @@ public class ClientInfo : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(LodingCanvas);
+        LodingCanvas.SetActive(false);
     }
 }

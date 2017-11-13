@@ -1429,6 +1429,7 @@ MonoBehaviour:
   inAppCanvas: {fileID: 1178027719}
   commentViewCanvas: {fileID: 437149388}
   object3DMenu: {fileID: 2032458634}
+  loadingCanvas: {fileID: 0}
 --- !u!4 &486120969
 Transform:
   m_ObjectHideFlags: 0
@@ -5421,7 +5422,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1662481826
 RectTransform:
   m_ObjectHideFlags: 0
