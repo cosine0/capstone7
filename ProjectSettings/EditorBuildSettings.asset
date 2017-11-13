@@ -5,21 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/login.unity
-    guid: f0753eec8a7bf4c4b93e1acfb26c9498
-  - enabled: 0
-    path: Assets/loading.unity
-    guid: 1d7321f69a8e6db4e9f107cef2883e02
   - enabled: 1
-    path: Assets/login2.unity
-    guid: b172bdfeb7767014b94b9c18ff657ecd
-  - enabled: 1
-    path: Assets/loadscene.unity
-    guid: 582184c7f0bac0c43a369280ea31cac9
+    path: Assets/Login.unity
+    guid: 7e02d93a08e92c040a92a5ba69737b65
   - enabled: 1
     path: Assets/InApp.unity
     guid: eaad503e495705648af6213c57ed5b9e
   - enabled: 1
-    path: Assets/option.unity
+    path: Assets/Option.unity
     guid: 77d9b343b2eeb2749a0b8f02b881dfa4

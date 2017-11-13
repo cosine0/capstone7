@@ -49,6 +49,7 @@ public class MainBehaviour : MonoBehaviour
 
     public GameObject inAppCanvas;
     public GameObject commentViewCanvas;
+    public GameObject object3DMenu;
 
     private void Start()
     {
@@ -455,6 +456,13 @@ public class MainBehaviour : MonoBehaviour
     {
         commentViewCanvas.SetActive(false);
         inAppCanvas.SetActive(true);
+    }
+    public void Object3DMenuShowAndHide()
+    {
+        if (object3DMenu.active)
+            object3DMenu.SetActive(false);
+        else
+            object3DMenu.SetActive(true);
     }
     public void TestButton()
     {

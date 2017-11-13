@@ -113,6 +113,10 @@ public class Login : MonoBehaviour {
         //SceneManager.LoadScene("loading");
         //SceneManager.LoadScene("loadscene");
     }
+    public void CloseSignUp()
+    {
+        CreateAccountPanelObj.SetActive(false);
+    }
 
     /// <summary>
     /// SignUpButton의 OnClink에 바인드. 클릭 시 회원 가입 코루틴을 시작한다.
