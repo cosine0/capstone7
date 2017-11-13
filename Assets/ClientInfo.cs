@@ -8,12 +8,18 @@ public class ClientInfo : MonoBehaviour
 {
     public bool OriginalValuesAreSet = false;
 
-    public float BearingOffset = 0.0f;
+    public float CorrectedBearingOffset = 0.0f;
     public float StartingLatitude = 0.0f;
     public float StartingLongitude = 0.0f;
     public float StartingAltitude = 0.0f;
 
-    public float CurrentBearing = 0.0f;
+    public float CurrentBearing
+    {
+        get
+        {
+            return MainCamera.transform.eulerAngles.y + CorrectedBearingOffset;
+        }
+    }
     public float CurrentLatitude = 0.0f;
     public float CurrentLongitude = 0.0f;
     public float CurrentAltitude = 0.0f;
@@ -25,7 +31,7 @@ public class ClientInfo : MonoBehaviour
     public int DistanceOption = 1;
     public string VersionInfo = "0.1";
 
-    public float[] BearingDifferences = new float[Constants.BearingCrawlingBufferSize];
+    public float[] BearingDifferences = new float[Constants.BearingDifferenceBufferSize];
     public int BearingDifferenceIndex = 0;
 
     private void Awake()

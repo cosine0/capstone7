@@ -41,7 +41,7 @@ public class JsonPlaneDataArray
 /// </summary>
 public class MainBehaviour : MonoBehaviour
 {
-    // Toast에 사용되는 임시 객체
+    // 안드로이드 Toast를 띄울 때 사용되는 임시 객체
     private string _toastString;
     private AndroidJavaObject _currentActivity;
 
@@ -68,7 +68,7 @@ public class MainBehaviour : MonoBehaviour
 
     private void Start()
     {
-        // 글로벌 DontDestroyOnLoad 객체인 ClientInfo, UserInfo 가져오기
+        // DontDestroyOnLoad 객체인 ClientInfo, UserInfo 가져오기
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
         _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
@@ -76,13 +76,13 @@ public class MainBehaviour : MonoBehaviour
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 
         // GPS 좌표 정보 갱신용 코루틴 시작
-        StartCoroutine(GetGps());
+        StartCoroutine(GetGps(Constants.GpsMeasureIntervalInSecond));
 
         // AR 오브젝트 목록 초기화
         _arObjects = new Dictionary<int, ArObject>();
 
-        StartCoroutine(CollectBearingDifference());
-        StartCoroutine(UpdateBearingOffset());
+        StartCoroutine(CollectBearingDifference(Constants.CompassMeasureIntervalInSecond));
+        StartCoroutine(UpdateBearingOffset(Constants.CompassMeasureIntervalInSecond));
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetArObjectList(5.0f));
@@ -117,7 +117,7 @@ public class MainBehaviour : MonoBehaviour
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
                     int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                    StartCoroutine(PointCoroutine(adNumber));
+                    StartCoroutine(EarnPointCoroutine(adNumber));
                     Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
                     break;
 
@@ -131,11 +131,12 @@ public class MainBehaviour : MonoBehaviour
 
         // 위치 정보 출력 (디버그)
         TextBox.GetComponent<Text>().text =
-            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.BearingOffset
+            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.CorrectedBearingOffset
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
             + "\nBearing: " + _clientInfo.CurrentBearing
+            + "\nAverage (compass-gyro): " + _clientInfo.CorrectedBearingOffset
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.BearingOffset) + ", "
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.CorrectedBearingOffset) + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z
             + "\nObject Count: " + _arObjects.Count
             + "\nCamera to object: ";
@@ -148,55 +149,55 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 나침반 센서 값을 카메라 방위각에 적용한다.
-    /// </summary>
-    private void UpdateCameraBearing()
-    {
-        // Input.compass.trueHeading의 값과 지도상의 방향 매칭:
-        //          0.0:
-        //          북
-        // 270.0:서    동:90.0
-        //          남
-        //          :180.0
-        // 로우 패스 (스무딩) 필터
-        float newBearing = Input.compass.trueHeading;
-        if (Mathf.Abs(newBearing - _clientInfo.CurrentBearing) < 180)
-        {
-            if (Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
-            {
-                _clientInfo.CurrentBearing = newBearing;
-            }
-            else
-            {
-                _clientInfo.CurrentBearing = _clientInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _clientInfo.CurrentBearing);
-            }
-        }
-        else
-        {
-            if (360.0 - Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
-            {
-                _clientInfo.CurrentBearing = newBearing;
-            }
-            else
-            {
-                if (_clientInfo.CurrentBearing > newBearing)
-                {
-                    _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _clientInfo.CurrentBearing) % 360) +
-                                      360) % 360;
-                }
-                else
-                {
-                    _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _clientInfo.CurrentBearing) % 360) +
-                                      360) % 360;
-                }
-            }
-        }
-
-        Vector3 newCameraAngle = _clientInfo.MainCamera.transform.eulerAngles;
-        newCameraAngle.y = _clientInfo.CurrentBearing;
-        _clientInfo.MainCamera.transform.eulerAngles = newCameraAngle;
-    }
+    ///// <summary>
+    ///// 나침반 센서 값을 카메라 방위각에 적용한다.
+    ///// </summary>
+    //private void UpdateCameraBearing()
+    //{
+    //    // Input.compass.trueHeading의 값과 지도상의 방향 매칭:
+    //    //          0.0:
+    //    //          북
+    //    // 270.0:서    동:90.0
+    //    //          남
+    //    //          :180.0
+    //    // 로우 패스 (스무딩) 필터
+    //    float newBearing = Input.compass.trueHeading;
+    //    if (Mathf.Abs(newBearing - _clientInfo.CurrentBearing) < 180)
+    //    {
+    //        if (Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+    //        {
+    //            _clientInfo.CurrentBearing = newBearing;
+    //        }
+    //        else
+    //        {
+    //            _clientInfo.CurrentBearing = _clientInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _clientInfo.CurrentBearing);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        if (360.0 - Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
+    //        {
+    //            _clientInfo.CurrentBearing = newBearing;
+    //        }
+    //        else
+    //        {
+    //            if (_clientInfo.CurrentBearing > newBearing)
+    //            {
+    //                _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _clientInfo.CurrentBearing) % 360) +
+    //                                  360) % 360;
+    //            }
+    //            else
+    //            {
+    //                _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _clientInfo.CurrentBearing) % 360) +
+    //                                  360) % 360;
+    //            }
+    //        }
+    //    }
+    //
+    //    Vector3 newCameraAngle = _clientInfo.MainCamera.transform.eulerAngles;
+    //    newCameraAngle.y = _clientInfo.CurrentBearing;
+    //    _clientInfo.MainCamera.transform.eulerAngles = newCameraAngle;
+    //}
 
     /// <summary>
     /// <see cref="_clientInfo"/>의 GPS값을 카메라 위치에 적용한다.
@@ -230,7 +231,7 @@ public class MainBehaviour : MonoBehaviour
     /// <summary>
     /// 코루틴 주기마다 <see cref="_clientInfo"/>의 GPS 값을 업데이트한다.
     /// </summary>
-    private IEnumerator GetGps()
+    private IEnumerator GetGps(float intervalInSecond = 0.3f)
     {
         // 앱이 켜져 있는 동안 계속 실행.
         while (true)
@@ -271,11 +272,10 @@ public class MainBehaviour : MonoBehaviour
 
             _clientInfo.LastGpsMeasureTime = Time.time;
 
-            // 글로벌 DontDestroyOnLoad 오브젝트인 _clientInfo의 현재 위치 업데이트
+            // DontDestroyOnLoad 오브젝트인 _clientInfo의 현재 위치 업데이트
             _clientInfo.CurrentLatitude = Input.location.lastData.latitude;
             _clientInfo.CurrentLongitude = Input.location.lastData.longitude;
             _clientInfo.CurrentAltitude = Input.location.lastData.altitude;
-            _clientInfo.CurrentBearing = Input.compass.trueHeading;
 
             // 초기 위치 정보 저장
             if (!_clientInfo.OriginalValuesAreSet)
@@ -283,13 +283,13 @@ public class MainBehaviour : MonoBehaviour
                 _clientInfo.StartingLatitude = _clientInfo.CurrentLatitude;
                 _clientInfo.StartingLongitude = _clientInfo.CurrentLongitude;
                 _clientInfo.StartingAltitude = _clientInfo.CurrentAltitude;
-                _clientInfo.BearingOffset = _clientInfo.CurrentBearing;
+                _clientInfo.CorrectedBearingOffset = Input.compass.trueHeading;
 
                 _clientInfo.OriginalValuesAreSet = true;
             }
 
-            // GPS 측정 주기: 0.3초
-            yield return new WaitForSeconds(0.3f);
+            // GPS 측정 주기: `intervalInSecond`초
+            yield return new WaitForSeconds(intervalInSecond);
         }
     }
 
@@ -390,7 +390,7 @@ public class MainBehaviour : MonoBehaviour
                 }
             }
 
-            // `intervalInSecond`초마다 한번씩 실행
+            // 오브젝트 목록 리퀘스트 주기: `intervalInSecond`초.
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
@@ -413,41 +413,44 @@ public class MainBehaviour : MonoBehaviour
             // 버퍼에 각 차이 저장
             _clientInfo.BearingDifferences[_clientInfo.BearingDifferenceIndex] = difference;
             _clientInfo.BearingDifferenceIndex++;
-            _clientInfo.BearingDifferenceIndex %= Constants.BearingCrawlingBufferSize;
+            _clientInfo.BearingDifferenceIndex %= Constants.BearingDifferenceBufferSize;
 
-            // intervalInSecond초마다 반복
+            // 나침반 측정 주기: `intervalInSecond`초
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
 
-    private IEnumerator UpdateBearingOffset(float intervalInSecond = 10.0f)
+    /// <summary>
+    /// 주기적으로 _clientInfo.BearingDifferences의 평균값을 _clientInfo.BearingOffset에 저장하고,
+    /// 이를 이용해 _clientInfo.CurrentBearing을 업데이트하고 ArObject들을 올바른 위치에 재배치한다.
+    /// </summary>
+    /// <param name="intervalInSecond"></param>
+    /// <returns></returns>
+    private IEnumerator UpdateBearingOffset(float intervalInSecond = 2.0f)
     {
         while (true)
         {
             // (나침반 - 메인카메라 각) 값 평균 계산. [-180, 180] 안의 값으로 나온다.
             float averageDifference = 0.0f;
-
-            for (int i = 0; i < Constants.BearingCrawlingBufferSize; i++)
-            {
+            for (int i = 0; i < Constants.BearingDifferenceBufferSize; i++)
                 averageDifference += _clientInfo.BearingDifferences[i];
-            }
-            
-            averageDifference /= Constants.BearingCrawlingBufferSize;
+            averageDifference /= Constants.BearingDifferenceBufferSize;
+
+            // Bearing Offset 값을 새로 계산된 값으로 반영
+            _clientInfo.CorrectedBearingOffset = averageDifference;
 
             foreach (var arObject in _arObjects.Values)
             {
+                // 모든 물체를 생성시 카메라 포지션 기준 회전
                 arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
-                    , new Vector3(0.0f, 1.0f, 0.0f), averageDifference - _clientInfo.BearingOffset); // 생성시 카메라 포지션 기준 회전
+                    , new Vector3(0.0f, 1.0f, 0.0f), averageDifference - _clientInfo.CorrectedBearingOffset);
             }
-
-            // Bearing값 최신 정보로 반영
-            _clientInfo.BearingOffset = averageDifference;
 
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
 
-    private IEnumerator PointCoroutine(int adNumber)
+    private IEnumerator EarnPointCoroutine(int adNumber)
     {
         string userId = _userInfo.UserId;
         WWWForm checkLogForm = new WWWForm();
@@ -462,19 +465,13 @@ public class MainBehaviour : MonoBehaviour
                 Debug.Log(www.error);
             else
             {
-
-                //Debug.Log("check clickLogFlag!");
-
                 var fromServJson = www.downloadHandler.text;
                 var pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
-
-                //showToastOnUiThread("check clickLogFlag!" + pointInfo.clickLogFlag);
-
+                
                 if (pointInfo.clickLogFlag)
                 {
                     WWWForm adInfoForm = new WWWForm();
                     adInfoForm.AddField("Input_ad", adNumber);
-
 
                     using (UnityWebRequest www2 = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/adinfo.php", adInfoForm))
                     {
@@ -485,15 +482,12 @@ public class MainBehaviour : MonoBehaviour
                         //showToastOnUiThread(www2.error);
                         else
                         {
-                            Debug.Log("get point!");
-
                             fromServJson = www2.downloadHandler.text;
                             pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
 
-                            int pointNumber = pointInfo.pointReward;
-                            //showToastOnUiThread("user id: "+userID+", ad"+adNumber+"의 adpoint: " + pointNumber);
+                            int pointToEarn = pointInfo.pointReward;
                             WWWForm pointForm = new WWWForm();
-                            pointForm.AddField("Input_point", pointNumber);
+                            pointForm.AddField("Input_point", pointToEarn);
                             pointForm.AddField("Input_user", userId);
                             pointForm.AddField("Input_ad", adNumber);
 
@@ -505,12 +499,9 @@ public class MainBehaviour : MonoBehaviour
                                     Debug.Log(www3.error);
                                 else
                                 {
-                                    Debug.Log("earn point!");
-                                    ShowToastOnUiThread("earn point: " + pointNumber);
+                                    ShowToastOnUiThread("earn point: " + pointToEarn);
                                 }
                             }
-
-
                         }
                     }
 
@@ -533,6 +524,7 @@ public class MainBehaviour : MonoBehaviour
 
     void ShowToastOnUiThread(string toastString)
     {
+        Debug.Log("Android Toast message: " + toastString);
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
         _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");

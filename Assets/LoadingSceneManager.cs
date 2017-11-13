@@ -48,8 +48,8 @@ public class LoadingSceneManager : MonoBehaviour
             {
                 Debug.Log(www.downloadHandler.text);
 
-                string fromServJson = www.downloadHandler.text;
-                JsonLoginData dataList = JsonUtility.FromJson<JsonLoginData>(fromServJson);
+                string responseJsonString = www.downloadHandler.text;
+                JsonLoginData dataList = JsonUtility.FromJson<JsonLoginData>(responseJsonString);
 
                 WelcomeText.GetComponent<Text>().text = "Welcome,\n" + dataList.user_name + "!";
                 Debug.Log(WelcomeText.GetComponent<Text>().text);

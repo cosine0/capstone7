@@ -19,13 +19,14 @@ public class JsonLoginData
 /// <summary>
 /// 로그인 scene에 필요한 스크립트를 갖는 Behaviour.
 /// </summary>
-public class Login : MonoBehaviour {
+public class Login : MonoBehaviour
+{
 
     private UserInfo _userInfo;
 
-    // toast
-    string _toastString;
-    AndroidJavaObject _currentActivity;
+    // 안드로이드 Toast를 띄울 때 사용되는 임시 객체
+    private string _toastString;
+    private AndroidJavaObject _currentActivity;
 
     //public GameObject idObject;
     //public string session_;
@@ -75,7 +76,7 @@ public class Login : MonoBehaviour {
             {
                 // 서버에서 Json 응답으로 유저 정보를 UserInfo 오브젝트에 적용
                 string responseJsonString = www.downloadHandler.text;
-                
+
                 JsonLoginData loginInfo = JsonUtility.FromJson<JsonLoginData>(responseJsonString);
                 _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
@@ -88,7 +89,6 @@ public class Login : MonoBehaviour {
                 if (loginInfo.user_id == "")
                 {
                     ShowToastOnUiThread("ID or Password is incorrect.");
-                    Debug.Log("failed to sign in");
                 }
                 else
                 {
@@ -160,6 +160,7 @@ public class Login : MonoBehaviour {
     /// <param name="toastString">토스트에 표시할 문자열</param>
     void ShowToastOnUiThread(string toastString)
     {
+        Debug.Log("Android Toast message: " + toastString);
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
         _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
@@ -172,11 +173,9 @@ public class Login : MonoBehaviour {
     {
         Debug.Log("Toast on UI thread: " + _toastString);
         AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
-        AndroidJavaClass Toast = new AndroidJavaClass("android.widget.Toast");
+        AndroidJavaClass toast_class = new AndroidJavaClass("android.widget.Toast");
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);
-        AndroidJavaObject toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_SHORT"));
+        AndroidJavaObject toast = toast_class.CallStatic<AndroidJavaObject>("makeText", context, javaString, toast_class.GetStatic<int>("LENGTH_SHORT"));
         toast.Call("show");
     }
-
-
 }

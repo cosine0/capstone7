@@ -9,17 +9,17 @@ using UnityEngine.UI;
 /// </summary>
 public class OptionBehaviour : MonoBehaviour {
     /// <summary>
-    /// 클라이언트 정보를 갖는 글로벌 DontDestroyOnLoad 객체에 대한 참조
+    /// 클라이언트 정보를 갖는 DontDestroyOnLoad 객체에 대한 참조
     /// </summary>
     private ClientInfo _clientInfo;
 
     /// <summary>
-    /// 사용자 정보를 갖는 글로벌 DontDestroyOnLoad 객체에 대한 참조
+    /// 사용자 정보를 갖는 DontDestroyOnLoad 객체에 대한 참조
     /// </summary>
     private UserInfo _userInfo;
 
 	void Start () {
-        // 글로벌 DontDestroyOnLoad 객체 가져오기
+        // DontDestroyOnLoad 객체 가져오기
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
         _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
@@ -64,10 +64,10 @@ public class OptionBehaviour : MonoBehaviour {
 
     public void OnClickLogout()
     {
-        
+        StartCoroutine(Logout());
     }
 
-    private IEnumerable Logout()
+    private IEnumerator Logout()
     {
         // 서버에 로그아웃 리퀘스트
         using (UnityWebRequest www = UnityWebRequest.Get("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/logout_session.php"))
@@ -77,14 +77,43 @@ public class OptionBehaviour : MonoBehaviour {
 
             if (www.isNetworkError || www.isHttpError)
             {
-                //ShowToastOnUiThread("Failed to log out. Cannot connect to the server.");
+                ShowToastOnUiThread("Failed to log out. Cannot connect to the server.");
                 Debug.Log(www.error);
             }
             else
             {
-                //ShowToastOnUiThread("Log out succeeded.");
+                ShowToastOnUiThread("Logout succeeded.");
                 SceneManager.LoadScene("login2");
             }
         }
+    }
+
+    // 안드로이드 Toast를 띄울 때 사용되는 임시 객체
+    private string _toastString;
+    private AndroidJavaObject _currentActivity;
+
+    /// <summary>
+    /// 안드로이드 토스트를 띄운다.
+    /// </summary>
+    /// <param name="toastString">토스트에 표시할 문자열</param>
+    void ShowToastOnUiThread(string toastString)
+    {
+        Debug.Log("Android Toast message: " + toastString);
+        AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+
+        _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        this._toastString = toastString;
+
+        _currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(ShowToast));
+    }
+
+    void ShowToast()
+    {
+        Debug.Log("Toast on UI thread: " + _toastString);
+        AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        AndroidJavaClass toastClass = new AndroidJavaClass("android.widget.Toast");
+        AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);
+        AndroidJavaObject toast = toastClass.CallStatic<AndroidJavaObject>("makeText", context, javaString, toastClass.GetStatic<int>("LENGTH_SHORT"));
+        toast.Call("show");
     }
 }
