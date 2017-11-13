@@ -59,7 +59,7 @@ public class MainBehaviour : MonoBehaviour
         _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
         _clientInfo.MainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-        
+
         // GPS 좌표 정보 갱신용 코루틴 시작
         StartCoroutine(GetGps());
         // AR 오브젝트 리스트 초기화
@@ -284,8 +284,8 @@ public class MainBehaviour : MonoBehaviour
                 _clientInfo.StartingBearing = _clientInfo.CurrentBearing;
 
                 _clientInfo.OriginalValuesAreSet = true;
+                _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
             }
-
             yield return new WaitForSeconds(0.3f);
             //Input.location.Stop();
         }

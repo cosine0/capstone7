@@ -1289,17 +1289,17 @@ Prefab:
     - target: {fileID: 114884790226020720, guid: 8fd5fe52a732dec4cbd41e936f97be53,
         type: 2}
       propertyPath: m_Color.r
-      value: 0
+      value: 0.2627451
       objectReference: {fileID: 0}
     - target: {fileID: 114884790226020720, guid: 8fd5fe52a732dec4cbd41e936f97be53,
         type: 2}
       propertyPath: m_Color.g
-      value: 1
+      value: 0.45490196
       objectReference: {fileID: 0}
     - target: {fileID: 114884790226020720, guid: 8fd5fe52a732dec4cbd41e936f97be53,
         type: 2}
       propertyPath: m_Color.b
-      value: 0
+      value: 0.8784314
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 8fd5fe52a732dec4cbd41e936f97be53, type: 2}
@@ -2704,7 +2704,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0, a: 1}
+  m_Color: {r: 0.2627451, g: 0.45490196, b: 0.8784314, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -3070,6 +3070,7 @@ MonoBehaviour:
   NewPwInputField: {fileID: 40427583}
   NameInputField: {fileID: 292344357}
   CreateAccountPanelObj: {fileID: 1362741414}
+  _clientInfo: {fileID: 2127614807}
 --- !u!4 &1505443460
 Transform:
   m_ObjectHideFlags: 0

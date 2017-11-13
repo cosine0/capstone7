@@ -30,6 +30,7 @@ public class Login : MonoBehaviour {
     public InputField NewPwInputField;
     public InputField NameInputField;
     public GameObject CreateAccountPanelObj;
+    public GameObject _clientInfo;
 
     /// <summary>
     /// LoginButton의 OnClink에 바인드. 클릭 시 로그인 코루틴을 시작한다.
@@ -53,6 +54,7 @@ public class Login : MonoBehaviour {
         loginForm.AddField("Input_user", userId);
         loginForm.AddField("Input_pass", password);
 
+        _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
         // 로그인 정보를 서버에 POST
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_session.php", loginForm))
         {
