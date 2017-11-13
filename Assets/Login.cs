@@ -68,7 +68,7 @@ public class Login : MonoBehaviour {
 
             if (www.isNetworkError || www.isHttpError)
             {
-                ShowToastOnUiThread("Failed to log in. Cannot connect to the server.");
+                ShowToastOnUiThread("Failed to sign in. Cannot connect to the server.");
                 Debug.Log(www.error);
             }
             else
@@ -88,11 +88,11 @@ public class Login : MonoBehaviour {
                 if (loginInfo.user_id == "")
                 {
                     ShowToastOnUiThread("ID or Password is incorrect.");
-                    Debug.Log("failed login");
+                    Debug.Log("failed to sign in");
                 }
                 else
                 {
-                    Debug.Log("successed login");
+                    Debug.Log("succeeded to sign in");
                     PwInputField.text = "";
                     SceneManager.LoadScene("loadscene");
                 }

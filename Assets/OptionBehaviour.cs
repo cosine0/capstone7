@@ -61,4 +61,30 @@ public class OptionBehaviour : MonoBehaviour {
     {
         SceneManager.LoadScene("InApp");
     }
+
+    public void OnClickLogout()
+    {
+        
+    }
+
+    private IEnumerable Logout()
+    {
+        // 서버에 로그아웃 리퀘스트
+        using (UnityWebRequest www = UnityWebRequest.Get("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/logout_session.php"))
+        {
+            // Get 전송
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+            {
+                //ShowToastOnUiThread("Failed to log out. Cannot connect to the server.");
+                Debug.Log(www.error);
+            }
+            else
+            {
+                //ShowToastOnUiThread("Log out succeeded.");
+                SceneManager.LoadScene("login2");
+            }
+        }
+    }
 }
