@@ -602,9 +602,9 @@ PlayerSettings:
     UNet: 1
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 2
-  cloudProjectId: 621a97f6-38d5-4ddc-9a23-8f3e89a31447
-  projectName: capstone7 (10)
-  organizationId: yongyong123
+  cloudProjectId: 7082d8f5-d425-4681-a094-e7b0a4207120
+  projectName: capstone7 (2)
+  organizationId: beomsu
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0

@@ -4,24 +4,33 @@ using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
-
+/// <summary>
+/// 로그인 성공 시 서버에서 Json 응답으로 주는 사용자 정보를 담기 위한 객체.
+/// </summary>
 [System.Serializable]
 public class JsonLoginData
 {
     public string user_id;
     public string user_name;
     public string sessionID;
+    public int point;
 }
 
+/// <summary>
+/// 로그인 scene에 필요한 스크립트를 갖는 Behaviour.
+/// </summary>
+public class Login : MonoBehaviour
+{
 
+    private UserInfo _userInfo;
 
-public class Login : MonoBehaviour {
-
-    public GameObject session_object;
+    // 안드로이드 Toast를 띄울 때 사용되는 임시 객체
+    private string _toastString;
+    private AndroidJavaObject _currentActivity;
 
     //public GameObject idObject;
     //public string session_;
-    //public GameObject infotext2;
+    //public GameObject infoText;
     [Header("LoginPanel")]
     public InputField IdInputField;
     public InputField PwInputField;
@@ -30,6 +39,8 @@ public class Login : MonoBehaviour {
     public InputField NewPwInputField;
     public InputField NameInputField;
     public GameObject CreateAccountPanelObj;
+    public GameObject _clientInfo;
+
 
     /// <summary>
     /// LoginButton의 OnClink에 바인드. 클릭 시 로그인 코루틴을 시작한다.
@@ -37,12 +48,10 @@ public class Login : MonoBehaviour {
     public void OnClickLogin()
     {
         StartCoroutine(LoginCoroutine());
-        //SceneManager.LoadScene("loading");
-        //SceneManager.LoadScene("loadscene");
     }
 
     /// <summary>
-    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="Session"/> 멤버에 정보를 저장하는 코루틴.
+    /// 서버에 로그인 정보를 전송하고 로그인 성공 시 <see cref="_userInfo"/> 멤버에 정보를 저장하는 코루틴.
     /// </summary>
     private IEnumerator LoginCoroutine()
     {
@@ -53,6 +62,7 @@ public class Login : MonoBehaviour {
         loginForm.AddField("Input_user", userId);
         loginForm.AddField("Input_pass", password);
 
+        _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
         // 로그인 정보를 서버에 POST
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_session.php", loginForm))
         {
@@ -61,44 +71,31 @@ public class Login : MonoBehaviour {
 
             if (www.isNetworkError || www.isHttpError)
             {
+                ShowToastOnUiThread("Failed to sign in. Cannot connect to the server.");
                 Debug.Log(www.error);
             }
             else
             {
-                Debug.Log(www.downloadHandler.text);
+                // 서버에서 Json 응답으로 유저 정보를 UserInfo 오브젝트에 적용
+                string responseJsonString = www.downloadHandler.text;
 
-                // Json 데이터에서 값을 파싱하여 리스트 형태로 재구성
-                string fromServJson = www.downloadHandler.text;
+                JsonLoginData loginInfo = JsonUtility.FromJson<JsonLoginData>(responseJsonString);
+                _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
 
-                //fromServJson = "{\"user_id\":\"a\"}";
+                _userInfo.SessionId = loginInfo.sessionID;
+                _userInfo.UserName = loginInfo.user_name;
+                _userInfo.UserId = loginInfo.user_id;
+                _userInfo.Point = loginInfo.point;
 
-                JsonLoginData loginInfo = JsonUtility.FromJson<JsonLoginData>(fromServJson);
-
-                Debug.Log(loginInfo.sessionID);
-
-                session_object = GameObject.FindGameObjectWithTag("session_gameobject");
-
-                DontDestroyOnLoad(session_object);
-
-                session_object.GetComponent<Text>().text = loginInfo.sessionID;
-                
-
-                //session_object.GetComponent<Text>().text = DataList.sessionID;
-
-                //Debug.Log(session_object.GetComponent<Text>().text);
-
-                //infotext2.GetComponent<Text>().text = "Welcome,\n" + "!";
-
-                // 서버로부터 현재 로그인 된 user_id랑 user_name 받아옴.
-
-                // 서버로부터 현재 로그인된 user_id랑 user_name를 받아옴.
+                // 서버로부터 현재 로그인된 user_id와 user_name를 받아온다
                 if (loginInfo.user_id == "")
                 {
-                    Debug.Log("failed login");
+                    ShowToastOnUiThread("ID or Password is incorrect.");
                 }
                 else
                 {
-                    Debug.Log("successed login");
+                    Debug.Log("succeeded to sign in");
+                    PwInputField.text = "";
                     SceneManager.LoadScene("loadscene");
                 }
 
@@ -106,25 +103,28 @@ public class Login : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// 로그인 창의 Sign Up 버튼에 바인드. 클릭 시 회원 가입 창을 표시한다.
+    /// </summary>
     public void OpenSignUp()
     {
-        //StartCoroutine(SignUpCoroutine());
+        // 회원 가입 창 표시
         CreateAccountPanelObj.SetActive(true);
-
-        //SceneManager.LoadScene("loading");
-        //SceneManager.LoadScene("loadscene");
+    }
+    public void CloseSignUp()
+    {
+        CreateAccountPanelObj.SetActive(false);
     }
 
     /// <summary>
-    /// SignUpButton의 OnClink에 바인드. 클릭 시 회원 가입 코루틴을 시작한다.
+    /// 회원 가입 창의 Sign Up 버튼에 바인드. 클릭 시 회원 가입 정보를 서버에 요청하는 코루틴을 시작한다.
     /// </summary>
     public void OnClickSignUp()
     {
-        StartCoroutine(SignUpCoroutine());
-        //CreateAccountPanelObj.SetActive(true);
-
-        //SceneManager.LoadScene("loading");
-        //SceneManager.LoadScene("loadscene");
+        if (NameInputField.text == "") ShowToastOnUiThread("Input Name");
+        else if (NewIdInputField.text == "") ShowToastOnUiThread("Input ID");
+        else if (NewPwInputField.text == "") ShowToastOnUiThread("Input Password");
+        else StartCoroutine(SignUpCoroutine());
     }
 
     /// <summary>
@@ -133,19 +133,59 @@ public class Login : MonoBehaviour {
     private IEnumerator SignUpCoroutine()
     {
         WWWForm signUpForm = new WWWForm();
+        signUpForm.AddField("Input_name", NameInputField.text);
         signUpForm.AddField("Input_user", NewIdInputField.text);
         signUpForm.AddField("Input_pass", NewPwInputField.text);
-        signUpForm.AddField("Input_name", NameInputField.text);
 
-        // 로그인 정보를 서버에 POST
+        // 회원가입 정보를 서버에 POST
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/createaccount.php", signUpForm))
         {
+            // POST 전송
             yield return www.Send();
 
             if (www.isNetworkError || www.isHttpError)
+            {
+                ShowToastOnUiThread("Failed to sign up. Cannot connect to the server.");
                 Debug.Log(www.error);
+            }
             else
-                CreateAccountPanelObj.SetActive(false);
+            {
+                ShowToastOnUiThread("Sign up succeeded.");
+                NameInputField.text = "";
+                NewIdInputField.text = "";
+                NewPwInputField.text = "";
+            }
+            // 회원가입 창 감추기
+            CreateAccountPanelObj.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// 안드로이드 토스트를 띄운다.
+    /// </summary>
+    /// <param name="toastString">토스트에 표시할 문자열</param>
+    void ShowToastOnUiThread(string toastString)
+    {
+        Debug.Log("Android Toast message: " + toastString);
+        AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+
+        _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        this._toastString = toastString;
+
+        _currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(ShowToast));
+    }
+
+    void ShowToast()
+    {
+        Debug.Log("Toast on UI thread: " + _toastString);
+        AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        AndroidJavaClass toast_class = new AndroidJavaClass("android.widget.Toast");
+        AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);
+        AndroidJavaObject toast = toast_class.CallStatic<AndroidJavaObject>("makeText", context, javaString, toast_class.GetStatic<int>("LENGTH_SHORT"));
+        toast.Call("show");
+    }
+
+    public void OnClickPreviousButton() {
+        CreateAccountPanelObj.SetActive(false);
     }
 }

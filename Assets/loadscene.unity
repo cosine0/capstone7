@@ -182,7 +182,6 @@ GameObject:
   - component: {fileID: 978040987}
   - component: {fileID: 978040986}
   - component: {fileID: 978040985}
-  - component: {fileID: 978040990}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -260,24 +259,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &978040990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 978040984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4959df2751960b14f8069a44cb98086b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  session_object: {fileID: 1223567236}
-  IdInputField: {fileID: 0}
-  PwInputField: {fileID: 0}
-  NewIdInputField: {fileID: 0}
-  NewPwInputField: {fileID: 0}
-  NameInputField: {fileID: 0}
-  CreateAccountPanelObj: {fileID: 0}
 --- !u!1001 &1223567234
 Prefab:
   m_ObjectHideFlags: 0
@@ -434,9 +415,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eaf136856c7f86945b44b2d7a9f2194d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  progressBar: {fileID: 2130685853}
-  infotext: {fileID: 0}
-  infotext2: {fileID: 1223567236}
+  ProgressBar: {fileID: 2130685853}
+  WelcomeText: {fileID: 1223567236}
 --- !u!4 &1560449468
 Transform:
   m_ObjectHideFlags: 0

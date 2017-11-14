@@ -1,7 +1,14 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// GPS 관련 계산 함수를 갖는 static 클래스.
+/// </summary>
 static class GpsCalulator
 {
+    /// <summary>
+    /// GPS (위도, 경도) 좌표가 (latitude1, longitude1)에서 (latitude2, longitude2)로 바뀔 때 이동 거리(미터)와 방위각(도)
+    /// </summary>
+    /// <returns>(이동 거리, 방위각)</returns>
     private static Vector2 DistanceAndBrearing(float latitude1, float longitude1, float latitude2, float longitude2)
     {
         const float earthRadiusMeter = 6378137.0f;
@@ -26,7 +33,10 @@ static class GpsCalulator
 
         return new Vector2(distance, bearing);
     }
-
+    /// <summary>
+    /// GPS (위도, 경도, 고도) 좌표가 (latitude1, longitude1, altitude1)에서 (latitude2, longitude2, altitude2)로 바뀔 때 직교 좌표계에서의 이동 거리(미터).
+    /// </summary>
+    /// <returns>(동-서 이동거리, 높이 변화, 북-남 이동거리)</returns>
     public static Vector3 CoordinateDifference(float latitude1, float longitude1, float altitude1, float latitude2, float longitude2, float altitude2)
     {
         Vector3 distanceBearingVector = DistanceAndBrearing(latitude1, longitude1, latitude2, longitude2);
