@@ -91,6 +91,7 @@ public class Login : MonoBehaviour
                 if (loginInfo.user_id == "")
                 {
                     ShowToastOnUiThread("ID or Password is incorrect.");
+                    _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
                 }
                 else
                 {

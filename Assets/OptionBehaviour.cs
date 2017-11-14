@@ -33,11 +33,17 @@ public class OptionBehaviour : MonoBehaviour {
         {
             case 1:
                 GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter10.isOn = true;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter20.isOn = false;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter30.isOn = false;
                 break;
             case 2:
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter10.isOn = false;
                 GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter20.isOn = true;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter30.isOn = false;
                 break;
             case 3:
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter10.isOn = false;
+                GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter20.isOn = false;
                 GameObject.FindGameObjectWithTag("OptionRadioButton").GetComponent<Distance_Radio>().Meter30.isOn = true;
                 break;
             default:
@@ -83,7 +89,7 @@ public class OptionBehaviour : MonoBehaviour {
             else
             {
                 ShowToastOnUiThread("Logout succeeded.");
-                SceneManager.LoadScene("login2");
+                SceneManager.LoadScene("login");
             }
         }
     }

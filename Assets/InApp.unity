@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311947, g: 0.38074005, b: 0.35872722, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -1290,7 +1290,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 486120968}
-        m_MethodName: onClickButterflyBtn
+        m_MethodName: onClickGift1Btn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1817,7 +1817,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 486120968}
-        m_MethodName: onClickHorseBtn
+        m_MethodName: onClickButterflyBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5767,7 +5767,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 486120968}
-        m_MethodName: onClickGift1Btn
+        m_MethodName: onClickHorseBtn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6338,20 +6338,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 1928145626}
   Inside: {fileID: 1928145627}
-  OnAnimator: {fileID: 1928145630}
-  OffAnimator: {fileID: 1928145631}
-  OnTransition: Standart Switch On Transition
-  OffTransition: Standart Switch Off Transition
---- !u!95 &1928145630 stripped
-Animator:
-  m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
-    type: 2}
-  m_PrefabInternal: {fileID: 1928145624}
---- !u!95 &1928145631 stripped
-Animator:
-  m_PrefabParentObject: {fileID: 95389186277153900, guid: 61c756c874f5e6f40bc3573de6cb5656,
-    type: 2}
-  m_PrefabInternal: {fileID: 1928145624}
+  OnAnimator: {fileID: 0}
+  OffAnimator: {fileID: 0}
+  OnTransition: 
+  OffTransition: 
 --- !u!1 &1937959281
 GameObject:
   m_ObjectHideFlags: 0
