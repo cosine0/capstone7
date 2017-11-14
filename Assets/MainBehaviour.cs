@@ -550,6 +550,9 @@ public class MainBehaviour : MonoBehaviour
     void ShowToastOnUiThread(string toastString)
     {
         Debug.Log("Android Toast message: " + toastString);
+        if (Application.platform != RuntimePlatform.Android)
+            return;
+
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
         _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");

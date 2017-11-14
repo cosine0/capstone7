@@ -83,7 +83,7 @@ public class OptionBehaviour : MonoBehaviour {
             else
             {
                 ShowToastOnUiThread("Logout succeeded.");
-                SceneManager.LoadScene("login2");
+                SceneManager.LoadScene("login");
             }
         }
     }
@@ -99,6 +99,9 @@ public class OptionBehaviour : MonoBehaviour {
     void ShowToastOnUiThread(string toastString)
     {
         Debug.Log("Android Toast message: " + toastString);
+        if (Application.platform != RuntimePlatform.Android)
+            return;
+
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
         _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
@@ -109,7 +112,6 @@ public class OptionBehaviour : MonoBehaviour {
 
     void ShowToast()
     {
-        Debug.Log("Toast on UI thread: " + _toastString);
         AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
         AndroidJavaClass toastClass = new AndroidJavaClass("android.widget.Toast");
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);

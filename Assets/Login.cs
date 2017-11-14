@@ -91,6 +91,7 @@ public class Login : MonoBehaviour
                 if (loginInfo.user_id == "")
                 {
                     ShowToastOnUiThread("ID or Password is incorrect.");
+                    _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
                 }
                 else
                 {
@@ -167,6 +168,9 @@ public class Login : MonoBehaviour
     void ShowToastOnUiThread(string toastString)
     {
         Debug.Log("Android Toast message: " + toastString);
+        if (Application.platform != RuntimePlatform.Android)
+            return;
+
         AndroidJavaClass UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
 
         _currentActivity = UnityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
@@ -177,7 +181,6 @@ public class Login : MonoBehaviour
 
     void ShowToast()
     {
-        Debug.Log("Toast on UI thread: " + _toastString);
         AndroidJavaObject context = _currentActivity.Call<AndroidJavaObject>("getApplicationContext");
         AndroidJavaClass toast_class = new AndroidJavaClass("android.widget.Toast");
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);

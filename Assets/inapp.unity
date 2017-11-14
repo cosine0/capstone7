@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -1288,7 +1288,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 466343463}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 486120968}
+        m_MethodName: onClickButterflyBtn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &466343463
@@ -1429,7 +1440,6 @@ MonoBehaviour:
   inAppCanvas: {fileID: 1178027719}
   commentViewCanvas: {fileID: 437149388}
   object3DMenu: {fileID: 2032458634}
-  loadingCanvas: {fileID: 0}
 --- !u!4 &486120969
 Transform:
   m_ObjectHideFlags: 0
@@ -1805,7 +1815,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 650719259}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 486120968}
+        m_MethodName: onClickHorseBtn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &650719259
@@ -5744,7 +5765,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1790785639}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 486120968}
+        m_MethodName: onClickGift1Btn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &1790785639
@@ -6306,10 +6338,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 1928145626}
   Inside: {fileID: 1928145627}
-  onAnimator: {fileID: 1928145630}
-  offAnimator: {fileID: 1928145631}
-  onTransition: Standart Switch On Transition
-  offTransition: Standart Switch Off Transition
+  OnAnimator: {fileID: 1928145630}
+  OffAnimator: {fileID: 1928145631}
+  OnTransition: Standart Switch On Transition
+  OffTransition: Standart Switch Off Transition
 --- !u!95 &1928145630 stripped
 Animator:
   m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
