@@ -4,6 +4,11 @@ using System.Collections;
 using UnityEngine.Networking;
 
 /// <summary>
+/// 오브젝트의 종류를 나타내는 타입
+/// </summary>
+public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArCommentCanvas, Ar3dObject, ArComment };
+
+/// <summary>
 /// 광고 하나를 나타내는 객체.
 /// </summary>
 public class AdInfo
@@ -36,11 +41,7 @@ public class CommentInfo
 public abstract class ArObject
 {
     public int Id;
-    /// <summary>
-    /// 오브젝트의 종류를 나타내는 타입: 광고판, 댓글, 3D 오브젝트
-    /// </summary>
-    public enum ArObjectType : int { ArObjectError = 0, AdPlane, ArComment };
-    
+
     /// <summary>
     /// 오브젝트 종류.
     /// </summary>
@@ -79,6 +80,7 @@ public abstract class ArObject
 public class ArPlane : ArObject
 {
     public AdInfo Info;
+    public GameObject CommentCanvas;
 
     /// <summary>
     /// 생성자. 광고 정보를 바탕으로 Unity 공간에 물체를 생성한다.
@@ -122,10 +124,12 @@ public class ArPlane : ArObject
         ObjectType = ArObjectType.AdPlane; // 타입 지정
         GameObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         GameObj.name = Info.Name;
+        // Plane object의 DataContainer에 값 패싱
         GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
         GameObj.GetComponent<DataContainer>().AdNum = Info.AdNumber;
         GameObj.GetComponent<DataContainer>().CreatedCameraPosition = 
             new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
+        GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.AdPlane;
 
         // GPS 정보를 사용하기 위해 GPS 초기화가 안된 경우 대기.
         yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
@@ -160,24 +164,23 @@ public class ArPlane : ArObject
     }
 }
 
-public class ArComment : ArObject
+public class ArCommentCanvas : ArObject
 {
-    public CommentInfo Comment { get; set; }
+    Canvas arCommentCanvas;
 
-    public ArComment(CommentInfo info)
+    public ArCommentCanvas()
     {
-        Comment = info;
+        
     }
 
     public override void Create()
     {
         // Mesh Type Definition
-        ObjectType = ArObjectType.ArComment;
+        ObjectType = ArObjectType.ArCommentCanvas;
     }
 
     public override void Update()
     {
-        // Billboard? - calculate camera's inverse matrix
         throw new NotImplementedException();
     }
 
@@ -185,6 +188,5 @@ public class ArComment : ArObject
     {
         MonoBehaviour.Destroy(GameObj);
         GameObj = null;
-        Comment = null;
     }
 }

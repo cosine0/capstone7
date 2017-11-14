@@ -64,6 +64,10 @@ public class MainBehaviour : MonoBehaviour
     /// </summary>
     private UserInfo _userInfo;
 
+    public GameObject inAppCanvas;
+    public GameObject commentViewCanvas;
+    public GameObject object3DMenu;
+
     JsonPointData _pointData;
 
     private void Start()
@@ -86,6 +90,7 @@ public class MainBehaviour : MonoBehaviour
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetArObjectList(5.0f));
+        StartCoroutine(GetCommentCanvas(5.0f));
     }
 
     private void Update()
@@ -116,9 +121,23 @@ public class MainBehaviour : MonoBehaviour
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 열고, 포인트 적립을 서버에 요청한다.
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                    StartCoroutine(EarnPointCoroutine(adNumber));
-                    Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane) {
+                        Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                    }
+                    else if(hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                    {
+                        //commentCanvas.SetActive(true);
+                        //inAppCanvas.SetActive(false);
+
+                        // 연관 광고 정보 패싱
+                        commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                        // CreateCommentView();
+                        // - list clear
+                        // - get comment list
+                        // - list add
+                        // - scroll view area calculate
+                    }
+
                     break;
 
                 case TouchPhase.Canceled:
@@ -286,6 +305,7 @@ public class MainBehaviour : MonoBehaviour
                 _clientInfo.CorrectedBearingOffset = Input.compass.trueHeading;
 
                 _clientInfo.OriginalValuesAreSet = true;
+                _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
             }
 
             // GPS 측정 주기: `intervalInSecond`초
@@ -633,4 +653,20 @@ public class MainBehaviour : MonoBehaviour
     }
 
     
+    public void HideCommnetView()
+    {
+        commentViewCanvas.SetActive(false);
+        inAppCanvas.SetActive(true);
+    }
+    public void Object3DMenuShowAndHide()
+    {
+        if (object3DMenu.activeSelf)
+            object3DMenu.SetActive(false);
+        else
+            object3DMenu.SetActive(true);
+    }
+    public void TestButton()
+    {
+        _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
+    }
 }

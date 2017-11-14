@@ -39,6 +39,7 @@ public class Login : MonoBehaviour
     public InputField NewPwInputField;
     public InputField NameInputField;
     public GameObject CreateAccountPanelObj;
+    public GameObject _clientInfo;
 
 
     /// <summary>
@@ -61,6 +62,7 @@ public class Login : MonoBehaviour
         loginForm.AddField("Input_user", userId);
         loginForm.AddField("Input_pass", password);
 
+        _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
         // 로그인 정보를 서버에 POST
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_session.php", loginForm))
         {
@@ -108,6 +110,10 @@ public class Login : MonoBehaviour
     {
         // 회원 가입 창 표시
         CreateAccountPanelObj.SetActive(true);
+    }
+    public void CloseSignUp()
+    {
+        CreateAccountPanelObj.SetActive(false);
     }
 
     /// <summary>
