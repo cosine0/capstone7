@@ -132,7 +132,8 @@ public class ArPlane : ArObject
         GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.AdPlane;
 
         // GPS 정보를 사용하기 위해 GPS 초기화가 안된 경우 대기.
-        yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
+        if (Application.platform == RuntimePlatform.Android)
+            yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
 
         // 초기 포지션 설정
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,

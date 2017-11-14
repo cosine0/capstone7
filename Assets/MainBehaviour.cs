@@ -90,7 +90,7 @@ public class MainBehaviour : MonoBehaviour
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetArObjectList(5.0f));
-        StartCoroutine(GetCommentCanvas(5.0f));
+        //StartCoroutine(GetCommentCanvas(5.0f));
     }
 
     private void Update()
@@ -121,10 +121,11 @@ public class MainBehaviour : MonoBehaviour
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 열고, 포인트 적립을 서버에 요청한다.
                     RaycastHit hitObject;
                     Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane) {
+                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
+                    {
                         Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
                     }
-                    else if(hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                    else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
                     {
                         //commentCanvas.SetActive(true);
                         //inAppCanvas.SetActive(false);
@@ -257,7 +258,10 @@ public class MainBehaviour : MonoBehaviour
         {
             // 위치 서비스가 켜져 있는지 체크
             if (!Input.location.isEnabledByUser)
+            {
+                _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
                 yield break;
+            }
 
             // 위치 정보 초기화 전인 경우 - 위치 서비스 시작
             if (!_clientInfo.OriginalValuesAreSet)
@@ -320,8 +324,9 @@ public class MainBehaviour : MonoBehaviour
     private IEnumerator GetArObjectList(float intervalInSecond = 5.0f)
     {
         // GPS 초기화가 될 때까지 대기
-        if (!_clientInfo.OriginalValuesAreSet)
-            yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
+        if (Application.platform == RuntimePlatform.Android)
+            if (!_clientInfo.OriginalValuesAreSet)
+                yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
 
         while (true)
         {
@@ -487,7 +492,7 @@ public class MainBehaviour : MonoBehaviour
             {
                 var fromServJson = www.downloadHandler.text;
                 var pointInfo = JsonUtility.FromJson<JsonPointData>(fromServJson);
-                
+
                 if (pointInfo.clickLogFlag)
                 {
                     WWWForm adInfoForm = new WWWForm();
@@ -618,7 +623,7 @@ public class MainBehaviour : MonoBehaviour
     {
         //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
         Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity);
-        
+
         string x = _clientInfo.CurrentLatitude.ToString();
         string y = _clientInfo.CurrentLongitude.ToString();
         string z = _clientInfo.CurrentAltitude.ToString();
@@ -629,7 +634,7 @@ public class MainBehaviour : MonoBehaviour
 
     private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
     {
-        
+
         WWWForm form = new WWWForm();
         form.AddField("latitude", x);
         form.AddField("longitude", y);
@@ -652,7 +657,7 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-    
+
     public void HideCommnetView()
     {
         commentViewCanvas.SetActive(false);
