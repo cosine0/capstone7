@@ -178,4 +178,8 @@ public class Login : MonoBehaviour
         AndroidJavaObject toast = toast_class.CallStatic<AndroidJavaObject>("makeText", context, javaString, toast_class.GetStatic<int>("LENGTH_SHORT"));
         toast.Call("show");
     }
+
+    public void OnClickPreviousButton() {
+        CreateAccountPanelObj.SetActive(false);
+    }
 }

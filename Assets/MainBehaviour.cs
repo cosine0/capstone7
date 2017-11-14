@@ -569,4 +569,53 @@ public class MainBehaviour : MonoBehaviour
             }
         }
     }
+
+    public void onClickBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("horse", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+
+    public void createObject(string typeName, Vector3 unityPosition)
+    {
+        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
+        Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity);
+        
+        string x = _clientInfo.CurrentLatitude.ToString();
+        string y = _clientInfo.CurrentLongitude.ToString();
+        string z = _clientInfo.CurrentAltitude.ToString();
+        string bearing = _clientInfo.CurrentBearing.ToString();
+        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing));
+
+    }
+
+    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
+    {
+        
+        WWWForm form = new WWWForm();
+        form.AddField("latitude", x);
+        form.AddField("longitude", y);
+        form.AddField("altitude", z);
+        form.AddField("typeName", typeName);
+        form.AddField("user", id);
+        form.AddField("bearing", bearing);
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
+        {
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                Debug.Log("create 3dObject!");
+            }
+        }
+    }
+
+    
 }
