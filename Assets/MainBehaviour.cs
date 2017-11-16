@@ -335,6 +335,23 @@ public class MainBehaviour : MonoBehaviour
             string latitude = _clientInfo.CurrentLatitude.ToString();
             string longitude = _clientInfo.CurrentLongitude.ToString();
             string altitude = _clientInfo.CurrentAltitude.ToString();
+            string latitudeOption;
+            string longitudeOption;
+            if (_clientInfo.DistanceOption == 1)
+            {
+                latitudeOption = "0.0002";
+                longitudeOption = "0.0001";
+            }
+            else if (_clientInfo.DistanceOption == 2)
+            {
+                latitudeOption = "0.0004";
+                longitudeOption = "0.0002";
+            }
+            else {
+                latitudeOption = "0.0006";
+                longitudeOption = "0.000";
+            }
+
 
             // 테스트용 GPS
             //latitude = "37.450571";
@@ -345,7 +362,8 @@ public class MainBehaviour : MonoBehaviour
             form.AddField("latitude", latitude);
             form.AddField("longitude", longitude);
             form.AddField("altitude", altitude);
-
+            form.AddField("latitudeOption", latitudeOption);
+            form.AddField("longitudeOption", longitudeOption);
             // GPS 정보를 서버에 POST
             using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
             {
