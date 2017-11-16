@@ -125,19 +125,21 @@ public class MainBehaviour : MonoBehaviour
                     {
                         Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
                     }
-                    else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
-                    {
-                        //commentCanvas.SetActive(true);
-                        //inAppCanvas.SetActive(false);
+                    //else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                    //{
+                    //    //commentCanvas.SetActive(true);
+                    //    //inAppCanvas.SetActive(false);
 
-                        // 연관 광고 정보 패싱
-                        commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                        // CreateCommentView();
-                        // - list clear
-                        // - get comment list
-                        // - list add
-                        // - scroll view area calculate
-                    }
+                    //    // 연관 광고 정보 패싱
+                    //    commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                    //    // CreateCommentView();
+                    //    // - list clear
+                    //    // - get comment list
+                    //    // - list add
+                    //    // - scroll view area calculate
+                    //}
+                    int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                    StartCoroutine(EarnPointCoroutine(adNumber));
 
                     break;
 
