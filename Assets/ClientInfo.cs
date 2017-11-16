@@ -29,6 +29,8 @@ public class ClientInfo : MonoBehaviour
     public GameObject LodingCanvas = null;
 
     public bool InsideOption = false;
+    public bool CommentViewOption = true;
+    public bool Object3dViewOption = true;
     public int DistanceOption = 1;
     public string VersionInfo = "0.1";
 
