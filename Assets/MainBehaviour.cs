@@ -438,9 +438,13 @@ public class MainBehaviour : MonoBehaviour
                 difference += 360;
 
             // 버퍼에 각 차이 저장
-            _clientInfo.BearingDifferences[_clientInfo.BearingDifferenceIndex] = difference;
+            _clientInfo.BearingDifferenceBuffer[_clientInfo.BearingDifferenceIndex] = difference;
             _clientInfo.BearingDifferenceIndex++;
-            _clientInfo.BearingDifferenceIndex %= Constants.BearingDifferenceBufferSize;
+            if (_clientInfo.BearingDifferenceIndex == Constants.BearingDifferenceBufferSize)
+            {
+                _clientInfo.BearingDifferenceBufferFilled = true;
+                _clientInfo.BearingDifferenceIndex = 0;
+            }
 
             // 나침반 측정 주기: `intervalInSecond`초
             yield return new WaitForSeconds(intervalInSecond);
@@ -459,9 +463,16 @@ public class MainBehaviour : MonoBehaviour
         {
             // (나침반 - 메인카메라 각) 값 평균 계산. [-180, 180] 안의 값으로 나온다.
             float averageDifference = 0.0f;
-            for (int i = 0; i < Constants.BearingDifferenceBufferSize; i++)
-                averageDifference += _clientInfo.BearingDifferences[i];
-            averageDifference /= Constants.BearingDifferenceBufferSize;
+            int bufferCount;
+            if (_clientInfo.BearingDifferenceBufferFilled)
+                bufferCount = Constants.BearingDifferenceBufferSize;
+            else
+                bufferCount = _clientInfo.BearingDifferenceIndex;
+
+            for (int i = 0; i < bufferCount; i++)
+                averageDifference += _clientInfo.BearingDifferenceBuffer[i];
+
+            averageDifference /= bufferCount;
 
             // Bearing Offset 값을 새로 계산된 값으로 반영
             _clientInfo.CorrectedBearingOffset = averageDifference;
