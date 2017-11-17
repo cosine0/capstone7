@@ -163,7 +163,7 @@ Prefab:
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -6.3100023
       objectReference: {fileID: 0}
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
@@ -712,7 +712,7 @@ Prefab:
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -6.3100023
       objectReference: {fileID: 0}
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
@@ -1026,7 +1026,7 @@ Prefab:
     - target: {fileID: 224823232353071100, guid: 3dbd4bc71acbb1145b6e80827b858127,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -197
       objectReference: {fileID: 0}
     - target: {fileID: 224823232353071100, guid: 3dbd4bc71acbb1145b6e80827b858127,
         type: 2}
@@ -1250,7 +1250,7 @@ Prefab:
     - target: {fileID: 224823232353071100, guid: 3dbd4bc71acbb1145b6e80827b858127,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -197
       objectReference: {fileID: 0}
     - target: {fileID: 224823232353071100, guid: 3dbd4bc71acbb1145b6e80827b858127,
         type: 2}
@@ -1469,6 +1469,11 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 740826311}
+--- !u!95 &835919144 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 973041390}
 --- !u!1001 &973041390
 Prefab:
   m_ObjectHideFlags: 0
@@ -1524,7 +1529,7 @@ Prefab:
     - target: {fileID: 224835212225136070, guid: 61c756c874f5e6f40bc3573de6cb5656,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -149.2
       objectReference: {fileID: 0}
     - target: {fileID: 224835212225136070, guid: 61c756c874f5e6f40bc3573de6cb5656,
         type: 2}
@@ -1692,10 +1697,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 973041393}
   Inside: {fileID: 973041394}
-  OnAnimator: {fileID: 0}
-  OffAnimator: {fileID: 0}
-  OnTransition: 
-  OffTransition: 
+  OnAnimator: {fileID: 835919144}
+  OffAnimator: {fileID: 1043159690}
+  OnTransition: Standart Switch On Transition
+  OffTransition: Standart Switch Off Transition
 --- !u!114 &973041393 stripped
 MonoBehaviour:
   m_PrefabParentObject: {fileID: 114837593701928232, guid: 61c756c874f5e6f40bc3573de6cb5656,
@@ -1856,6 +1861,11 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1040408358}
+--- !u!95 &1043159690 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95389186277153900, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 973041390}
 --- !u!1 &1097727314
 GameObject:
   m_ObjectHideFlags: 0
@@ -3107,7 +3117,7 @@ Prefab:
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -6.3100023
       objectReference: {fileID: 0}
     - target: {fileID: 224368713960172972, guid: 5fc34351c13648344b45790d063ab06c,
         type: 2}
