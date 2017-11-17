@@ -111,6 +111,7 @@ public class MainBehaviour : MonoBehaviour
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetArObjectList(5.0f));
+        StartCoroutine(Get3dArObjectList(5.0f));
         //StartCoroutine(GetCommentCanvas(5.0f));
     }
 
@@ -172,6 +173,25 @@ public class MainBehaviour : MonoBehaviour
             }
         }
 
+        //// 위치 정보 출력 (디버그)
+        //TextBox.GetComponent<Text>().text =
+        //    "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.CorrectedBearingOffset
+        //    + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
+        //    + "\nBearing: " + _clientInfo.CurrentBearing
+        //    + "\nAverage (compass-gyro): " + _clientInfo.CorrectedBearingOffset
+        //    + "\ncamera position: " + _clientInfo.MainCamera.transform.position
+        //    + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.CorrectedBearingOffset) + ", "
+        //    + _clientInfo.MainCamera.transform.eulerAngles.z
+        //    + "\nObject Count: " + _arObjects.Count
+        //    + "\nCamera to object: ";
+
+        //// 물체 위치 출력 (디버그)
+        //foreach (ArObject entity in _arObjects.Values)
+        //{
+        //    Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
+        //    TextBox.GetComponent<Text>().text += cameraToObject + "\n";
+        //}
+
         // 위치 정보 출력 (디버그)
         TextBox.GetComponent<Text>().text =
             "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.CorrectedBearingOffset
@@ -181,11 +201,11 @@ public class MainBehaviour : MonoBehaviour
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
             + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.CorrectedBearingOffset) + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z
-            + "\nObject Count: " + _arObjects.Count
+            + "\n3dObject Count: " + _ar3dObjects.Count
             + "\nCamera to object: ";
 
         // 물체 위치 출력 (디버그)
-        foreach (ArObject entity in _arObjects.Values)
+        foreach (ArObject entity in _ar3dObjects.Values)
         {
             Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
             TextBox.GetComponent<Text>().text += cameraToObject + "\n";
@@ -818,9 +838,6 @@ public class MainBehaviour : MonoBehaviour
 
     public void createObject(string typeName, Vector3 unityPosition)
     {
-        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
-        var transform = Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as Transform;
-
         string x = _clientInfo.CurrentLatitude.ToString();
         string y = _clientInfo.CurrentLongitude.ToString();
         string z = _clientInfo.CurrentAltitude.ToString();
@@ -831,7 +848,7 @@ public class MainBehaviour : MonoBehaviour
     private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
     {
 
-        ShowToastOnUiThread(x + "," + y + "," +z + "," +typeName + "," +id + "," +bearing);
+        //ShowToastOnUiThread(x + "," + y + "," +z + "," +typeName + "," +id + "," +bearing);
 
         WWWForm form = new WWWForm();
         form.AddField("latitude", x);
