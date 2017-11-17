@@ -6338,10 +6338,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Outside: {fileID: 1928145626}
   Inside: {fileID: 1928145627}
-  OnAnimator: {fileID: 0}
-  OffAnimator: {fileID: 0}
-  OnTransition: 
-  OffTransition: 
+  OnAnimator: {fileID: 1928145630}
+  OffAnimator: {fileID: 1928145631}
+  OnTransition: Standart Switch On Transition
+  OffTransition: Standart Switch Off Transition
+--- !u!95 &1928145630 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95716282378408200, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 1928145624}
+--- !u!95 &1928145631 stripped
+Animator:
+  m_PrefabParentObject: {fileID: 95389186277153900, guid: 61c756c874f5e6f40bc3573de6cb5656,
+    type: 2}
+  m_PrefabInternal: {fileID: 1928145624}
 --- !u!1 &1937959281
 GameObject:
   m_ObjectHideFlags: 0
