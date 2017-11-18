@@ -186,7 +186,7 @@ public class MainBehaviour : MonoBehaviour
             + "\nAverage (compass-gyro): " + (_clientInfo.CorrectedBearingOffset % 360f + 360f) % 360f
             + "\nCorrected Bearing: " + (_clientInfo.CurrentBearing % 360f + 360f) % 360f
             + "\nObject Count: " + _arObjects.Count
-            + "\nCamera to planes: ";
+            + "\nCamera to planes:\n";
 
         // 물체 위치 출력 (디버그)
         foreach (ArObject entity in _arObjects.Values)
@@ -196,7 +196,7 @@ public class MainBehaviour : MonoBehaviour
         }
 
         // 물체 위치 출력 (디버그)
-        TextBox.GetComponent<Text>().text += "\nCamera to 3D objects: "
+        TextBox.GetComponent<Text>().text += "Camera to 3D objects:\n";
         foreach (ArObject entity in _ar3dObjects.Values)
         {
             Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;

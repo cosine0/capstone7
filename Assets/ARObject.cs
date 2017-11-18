@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using UnityEngine.Networking;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// 오브젝트의 종류를 나타내는 타입
@@ -25,7 +26,6 @@ public class AdInfo
     public float Height = 1.0f;
 };
 
-
 public class Ad3dInfo
 {
     public int ObjectNumber;
@@ -34,7 +34,6 @@ public class Ad3dInfo
     public string typeName = null;
     public string TextAlternateToTexture = "";
 };
-
 
 /// <summary>
 /// 댓글 하나를 나타내는 객체.
@@ -57,12 +56,12 @@ public abstract class ArObject
     /// 오브젝트 종류.
     /// </summary>
     public ArObjectType ObjectType;
-    
+
     /// <summary>
     /// Unity 공간 상에 있는 물체에 대한 참조.
     /// </summary>
     public GameObject GameObj;
-    
+
     /// <summary>
     /// DontDestroyOnLoad 오브젝트인 클라이언트 정보
     /// </summary>
@@ -78,7 +77,7 @@ public abstract class ArObject
     /// 물체의 애니메이션 등 업데이트를 처리하는 함수.
     /// </summary>
     public abstract void Update();
-    
+
     /// <summary>
     /// Unity 공간에서 <see cref="GameObj"/>에 있는 물체를 제거하는 함수.
     /// </summary>
@@ -138,7 +137,7 @@ public class ArPlane : ArObject
         // Plane object의 DataContainer에 값 패싱
         GameObj.AddComponent<DataContainer>().BannerUrl = Info.BannerUrl; // URL 정보를 담을 DataContainer Component추가
         GameObj.GetComponent<DataContainer>().AdNum = Info.AdNumber;
-        GameObj.GetComponent<DataContainer>().CreatedCameraPosition = 
+        GameObj.GetComponent<DataContainer>().CreatedCameraPosition =
             new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
         GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.AdPlane;
 
@@ -176,8 +175,6 @@ public class ArPlane : ArObject
     }
 }
 
-
-
 /// <summary>
 /// 3d 형태의 광고 오브젝트.
 /// </summary>
@@ -201,11 +198,10 @@ public class Ar3dPlane : ArObject
     public sealed override void Create()
     {
         StaticCoroutine.DoCoroutine(CreateObject());
-
     }
 
     /// <summary>
-    /// <see cref="Info"/>를 바탕으로 Unity 공간에 Plane 오브젝트를 생성하고 GameObj 멤버에 그 참조를 할당하는 코루틴.
+    /// <see cref="Info"/>를 바탕으로 Unity 공간에 3D 오브젝트를 생성하고 GameObj 멤버에 그 참조를 할당하는 코루틴.
     /// </summary>
     private IEnumerator CreateObject()
     {
@@ -215,9 +211,10 @@ public class Ar3dPlane : ArObject
 
         GameObj = createObject(Info.typeName, unityPosition);
         GameObj.name = Info.typeName;
-        ObjectType = ArObjectType.Ar3dObject; // 타입 지정
-        // Plane object의 DataContainer에 값 패싱
-        GameObj.GetComponent<DataContainer>().AdNum = Info.ObjectNumber;
+        // 타입 지정
+        ObjectType = ArObjectType.Ar3dObject;
+        // 3D object의 DataContainer에 값 패싱
+        GameObj.AddComponent<DataContainer>().AdNum = Info.ObjectNumber;
         GameObj.GetComponent<DataContainer>().CreatedCameraPosition =
             new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
         GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.Ar3dObject;
@@ -226,24 +223,18 @@ public class Ar3dPlane : ArObject
         if (Application.platform == RuntimePlatform.Android)
             yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
 
-        
-
         unityPosition.y = 0; // 고도 사용 안함.
 
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
         GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
-        // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
-        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
-
     }
 
     public GameObject createObject(string typeName, Vector3 unityPosition)
     {
-        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
-        var transform = MainBehaviour.Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as Transform;
-
-        return transform.gameObject;
+        Debug.Log("creat 3d: " + typeName + ", at " + unityPosition);
+        var objectInstance = (GameObject)Object.Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity);
+        return objectInstance;
     }
 
     public override void Update()
@@ -256,14 +247,11 @@ public class Ar3dPlane : ArObject
     /// </summary>
     public override void Destroy()
     {
-        MonoBehaviour.Destroy(GameObj);
+        Object.Destroy(GameObj);
         GameObj = null;
         Info = null;
     }
 }
-
-
-
 
 public class ArCommentCanvas : ArObject
 {
@@ -271,7 +259,7 @@ public class ArCommentCanvas : ArObject
 
     public ArCommentCanvas()
     {
-        
+
     }
 
     public override void Create()
