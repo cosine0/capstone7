@@ -43,5 +43,7 @@ public class InsideOptionSwitch : MonoBehaviour {
 	{
         // 실내/외를 반전
 	    _clientInfo.InsideOption = !_clientInfo.InsideOption;
+        Debug.Log(_clientInfo.InsideOption);
+
 	}
 }

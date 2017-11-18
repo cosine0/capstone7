@@ -23,6 +23,18 @@ public class JsonPlaneData
 }
 
 [System.Serializable]
+public class Json3dData
+{
+    public int object_no;
+    public string typeName;
+    public float ad_userid;
+    public float latitude;
+    public float longitude;
+    public float altitude;
+    public float bearing;
+}
+
+[System.Serializable]
 public class JsonPointData
 {
     public int pointReward;
@@ -34,6 +46,12 @@ public class JsonPointData
 public class JsonPlaneDataArray
 {
     public JsonPlaneData[] data;
+}
+
+[System.Serializable]
+public class Json3dDataArray
+{
+    public Json3dData[] data;
 }
 
 /// <summary>
@@ -54,6 +72,8 @@ public class MainBehaviour : MonoBehaviour
     /// 이 앱에 로드된 모든 AR 오브젝트의 목록. Ad Number를 키, ArObject를 값으로 가진다.
     /// </summary>
     private Dictionary<int, ArObject> _arObjects;
+
+    private Dictionary<int, ArObject> _ar3dObjects;
 
     /// <summary>
     /// 클라이언트 위치, 옵션 정보
@@ -84,12 +104,14 @@ public class MainBehaviour : MonoBehaviour
 
         // AR 오브젝트 목록 초기화
         _arObjects = new Dictionary<int, ArObject>();
+        _ar3dObjects = new Dictionary<int, ArObject>();
 
         StartCoroutine(CollectBearingDifference(Constants.CompassMeasureIntervalInSecond));
         StartCoroutine(UpdateBearingOffset(Constants.CompassMeasureIntervalInSecond));
 
         // 주변 오브젝트 목록 주기적 업데이트를 위한 코루틴 시작
         StartCoroutine(GetArObjectList(5.0f));
+        StartCoroutine(Get3dArObjectList(5.0f));
         //StartCoroutine(GetCommentCanvas(5.0f));
     }
 
@@ -164,10 +186,18 @@ public class MainBehaviour : MonoBehaviour
             + "\nAverage (compass-gyro): " + (_clientInfo.CorrectedBearingOffset % 360f + 360f) % 360f
             + "\nCorrected Bearing: " + (_clientInfo.CurrentBearing % 360f + 360f) % 360f
             + "\nObject Count: " + _arObjects.Count
-            + "\nCamera to object: ";
+            + "\nCamera to planes: ";
 
         // 물체 위치 출력 (디버그)
         foreach (ArObject entity in _arObjects.Values)
+        {
+            Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
+            TextBox.GetComponent<Text>().text += cameraToObject + "\n";
+        }
+
+        // 물체 위치 출력 (디버그)
+        TextBox.GetComponent<Text>().text += "\nCamera to 3D objects: "
+        foreach (ArObject entity in _ar3dObjects.Values)
         {
             Vector3 cameraToObject = entity.GameObj.transform.position - _clientInfo.MainCamera.transform.position;
             TextBox.GetComponent<Text>().text += cameraToObject + "\n";
@@ -285,113 +315,252 @@ public class MainBehaviour : MonoBehaviour
 
         while (true)
         {
-            string latitude = _clientInfo.CurrentLatitude.ToString();
-            string longitude = _clientInfo.CurrentLongitude.ToString();
-            string altitude = _clientInfo.CurrentAltitude.ToString();
-            string latitudeOption;
-            string longitudeOption;
-            if (_clientInfo.DistanceOption == 1)
-            {
-                latitudeOption = "0.0002";
-                longitudeOption = "0.0001";
+            
+            if (_clientInfo.InsideOption) {
+                _clientInfo.OriginalValuesAreSet = false;
+                foreach (var arObject in _arObjects.Values)
+                    arObject.Destroy();
+                _arObjects.Clear();
             }
-            else if (_clientInfo.DistanceOption == 2)
+            else
             {
-                latitudeOption = "0.0004";
-                longitudeOption = "0.0002";
-            }
-            else {
-                latitudeOption = "0.0006";
-                longitudeOption = "0.0003";
-            }
 
-
-            // 테스트용 GPS
-            //latitude = "37.450571";
-            //longitude = "126.656903";
-            //altitude = "53.000000";
-
-            WWWForm form = new WWWForm();
-            form.AddField("latitude", latitude);
-            form.AddField("longitude", longitude);
-            form.AddField("altitude", altitude);
-            form.AddField("latitudeOption", latitudeOption);
-            form.AddField("longitudeOption", longitudeOption);
-            // GPS 정보를 서버에 POST
-            using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
-            {
-                // POST 전송
-                yield return www.Send();
-
-                if (www.isNetworkError || www.isHttpError)
+                string latitude = _clientInfo.CurrentLatitude.ToString();
+                string longitude = _clientInfo.CurrentLongitude.ToString();
+                string altitude = _clientInfo.CurrentAltitude.ToString();
+                string latitudeOption;
+                string longitudeOption;
+                if (_clientInfo.DistanceOption == 1)
                 {
-                    Debug.Log(www.error);
-                    // TODO: 필요시 재시도
+                    latitudeOption = "0.0002";
+                    longitudeOption = "0.0001";
+                }
+                else if (_clientInfo.DistanceOption == 2)
+                {
+                    latitudeOption = "0.0004";
+                    longitudeOption = "0.0002";
                 }
                 else
                 {
-                    // 서버에서 Json 응답으로 준 오브젝트 리스트를 _arObjects에 적용
-                    string responseJsonString = www.downloadHandler.text;
-                    JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(responseJsonString);
+                    latitudeOption = "0.0006";
+                    longitudeOption = "0.0003";
+                }
 
-                    if (newObjectList.data.Length == 0)
+
+                // 테스트용 GPS
+                //latitude = "37.450571";
+                //longitude = "126.656903";
+                //altitude = "53.000000";
+
+                WWWForm form = new WWWForm();
+                form.AddField("latitude", latitude);
+                form.AddField("longitude", longitude);
+                form.AddField("altitude", altitude);
+                form.AddField("latitudeOption", latitudeOption);
+                form.AddField("longitudeOption", longitudeOption);
+
+                // 2d 오브젝트 목록 가져오기: GPS 정보를 서버에 POST
+                using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
+                {
+                    // POST 전송
+                    yield return www.Send();
+
+                    if (www.isNetworkError || www.isHttpError)
                     {
-                        // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
-                        foreach (var arObject in _arObjects.Values)
-                            arObject.Destroy();
-
-                        _arObjects.Clear();
+                        Debug.Log(www.error);
+                        // TODO: 필요시 재시도
                     }
                     else
                     {
-                        // 받아온 오브젝트의 Ad Number 모으기 (유일한 번호인 Ad Number로 오브젝트를 구별하기 위함)
-                        var newAdNumbers = new HashSet<int>();
-                        foreach (var newObject in newObjectList.data)
-                            newAdNumbers.Add(newObject.ad_no);
+                        // 서버에서 Json 응답으로 준 오브젝트 리스트를 _arObjects에 적용
+                        string responseJsonString = www.downloadHandler.text;
+                        JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(responseJsonString);
 
-                        // _arObjects의 ArObject들 중 받아온 리스트에 없는 것 삭제
-                        var oldAdNumbers = new List<int>(_arObjects.Keys);
-                        foreach (var oldNumber in oldAdNumbers)
+                        if (newObjectList.data.Length == 0)
                         {
-                            if (!newAdNumbers.Contains(oldNumber))
-                            {
-                                _arObjects[oldNumber].Destroy();
-                                _arObjects.Remove(oldNumber);
-                            }
+                            // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
+                            foreach (var arObject in _arObjects.Values)
+                                arObject.Destroy();
+
+                            _arObjects.Clear();
                         }
-
-                        // 받아온 리스트에서 새로 생긴 ArObject 생성
-                        foreach (JsonPlaneData jsonArObject in newObjectList.data)
+                        else
                         {
-                            // 기존 리스트에 이미 있는 경우 안 만듦
-                            if (_arObjects.Keys.Contains(jsonArObject.ad_no))
-                                continue;
+                            // 받아온 오브젝트의 Ad Number 모으기 (유일한 번호인 Ad Number로 오브젝트를 구별하기 위함)
+                            var newAdNumbers = new HashSet<int>();
+                            foreach (var newObject in newObjectList.data)
+                                newAdNumbers.Add(newObject.ad_no);
 
-                            // 새로운 ArObject 생성
-                            AdInfo tmpAdInfo = new AdInfo
+                            // _arObjects의 ArObject들 중 받아온 리스트에 없는 것 삭제
+                            var oldAdNumbers = new List<int>(_arObjects.Keys);
+                            foreach (var oldNumber in oldAdNumbers)
                             {
-                                AdNumber = jsonArObject.ad_no,
-                                Name = jsonArObject.name,
-                                GpsInfo = new Vector3(jsonArObject.latitude, jsonArObject.longitude,
+                                if (!newAdNumbers.Contains(oldNumber))
+                                {
+                                    _arObjects[oldNumber].Destroy();
+                                    _arObjects.Remove(oldNumber);
+                                }
+                            }
+
+                            // 받아온 리스트에서 새로 생긴 ArObject 생성
+                            foreach (JsonPlaneData jsonArObject in newObjectList.data)
+                            {
+                                // 기존 리스트에 이미 있는 경우 안 만듦
+                                if (_arObjects.Keys.Contains(jsonArObject.ad_no))
+                                    continue;
+
+                                // 새로운 ArObject 생성
+                                AdInfo tmpAdInfo = new AdInfo
+                                {
+                                    AdNumber = jsonArObject.ad_no,
+                                    Name = jsonArObject.name,
+                                    GpsInfo = new Vector3(jsonArObject.latitude, jsonArObject.longitude,
                                     jsonArObject.altitude),
-                                Bearing = jsonArObject.bearing,
-                                TextureUrl = jsonArObject.texture_url,
-                                BannerUrl = jsonArObject.banner_url,
-                                TextAlternateToTexture = "",
-                                AdTexture = null,
-                                Width = jsonArObject.width,
-                                Height = jsonArObject.height
-                            };
-                            _arObjects[jsonArObject.ad_no] = new ArPlane(tmpAdInfo, _clientInfo);
+                                    Bearing = jsonArObject.bearing,
+                                    TextureUrl = jsonArObject.texture_url,
+                                    BannerUrl = jsonArObject.banner_url,
+                                    TextAlternateToTexture = "",
+                                    AdTexture = null,
+                                    Width = jsonArObject.width,
+                                    Height = jsonArObject.height
+                                };
+                                _arObjects[jsonArObject.ad_no] = new ArPlane(tmpAdInfo, _clientInfo);
+                            }
                         }
                     }
                 }
             }
-
             // 오브젝트 목록 리퀘스트 주기: `intervalInSecond`초.
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
+
+    private IEnumerator Get3dArObjectList(float intervalInSecond = 5.0f)
+    {
+        // GPS 초기화가 될 때까지 대기
+        if (Application.platform == RuntimePlatform.Android)
+            if (!_clientInfo.OriginalValuesAreSet)
+                yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
+
+        while (true)
+        {
+
+            if (_clientInfo.InsideOption)
+            {
+                _clientInfo.OriginalValuesAreSet = false;
+                foreach (var arObject in _ar3dObjects.Values)
+                    arObject.Destroy();
+                _ar3dObjects.Clear();
+            }
+            else
+            {
+
+                string latitude = _clientInfo.CurrentLatitude.ToString();
+                string longitude = _clientInfo.CurrentLongitude.ToString();
+                string altitude = _clientInfo.CurrentAltitude.ToString();
+                string latitudeOption;
+                string longitudeOption;
+                if (_clientInfo.DistanceOption == 1)
+                {
+                    latitudeOption = "0.0002";
+                    longitudeOption = "0.0001";
+                }
+                else if (_clientInfo.DistanceOption == 2)
+                {
+                    latitudeOption = "0.0004";
+                    longitudeOption = "0.0002";
+                }
+                else
+                {
+                    latitudeOption = "0.0006";
+                    longitudeOption = "0.0003";
+                }
+
+
+                // 테스트용 GPS
+                //latitude = "37.450571";
+                //longitude = "126.656903";
+                //altitude = "53.000000";
+
+                WWWForm form = new WWWForm();
+                form.AddField("latitude", latitude);
+                form.AddField("longitude", longitude);
+                form.AddField("altitude", altitude);
+                form.AddField("latitudeOption", latitudeOption);
+                form.AddField("longitudeOption", longitudeOption);
+
+                // 3D 오브젝트 목록 가져오기: GPS 정보를 서버에 POST
+                using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/get3D_distance.php", form))
+                {
+                    // POST 전송
+                    yield return www.Send();
+
+                    if (www.isNetworkError || www.isHttpError)
+                    {
+                        Debug.Log(www.error);
+                        // TODO: 필요시 재시도
+                    }
+                    else
+                    {
+                        // 서버에서 Json 응답으로 준 오브젝트 리스트를 _ar3dObjects에 적용
+                        string responseJsonString = www.downloadHandler.text;
+                        //JsonPlaneDataArray newObjectList = JsonUtility.FromJson<JsonPlaneDataArray>(responseJsonString);
+                        Json3dDataArray newObjectList = JsonUtility.FromJson<Json3dDataArray>(responseJsonString);
+
+                        if (newObjectList.data.Length == 0)
+                        {
+                            // 받아온 리스트에 아무것도 없는 경우 - 리스트 클리어
+                            foreach (var arObject in _ar3dObjects.Values)
+                                arObject.Destroy();
+
+                            _ar3dObjects.Clear();
+                        }
+                        else
+                        {
+                            // 받아온 오브젝트의 Ad Number 모으기 (유일한 번호인 Ad Number로 오브젝트를 구별하기 위함)
+                            var newAdNumbers = new HashSet<int>();
+                            foreach (var newObject in newObjectList.data)
+                                newAdNumbers.Add(newObject.object_no);
+
+                            // _arObjects의 ArObject들 중 받아온 리스트에 없는 것 삭제
+                            var oldAdNumbers = new List<int>(_ar3dObjects.Keys);
+                            foreach (var oldNumber in oldAdNumbers)
+                            {
+                                if (!newAdNumbers.Contains(oldNumber))
+                                {
+                                    _ar3dObjects[oldNumber].Destroy();
+                                    _ar3dObjects.Remove(oldNumber);
+                                }
+                            }
+
+                            // 받아온 리스트에서 새로 생긴 ArObject 생성
+                            foreach (Json3dData json3dArObject in newObjectList.data)
+                            {
+                                // 기존 리스트에 이미 있는 경우 안 만듦
+                                if (_ar3dObjects.Keys.Contains(json3dArObject.object_no))
+                                    continue;
+
+                                // 새로운 ArObject 생성
+                                Ad3dInfo tmpAdInfo = new Ad3dInfo
+                                {
+                                    ObjectNumber = json3dArObject.object_no,
+                                    typeName = json3dArObject.typeName,
+                                    GpsInfo = new Vector3(json3dArObject.latitude, json3dArObject.longitude,
+                                    json3dArObject.altitude),
+                                    Bearing = json3dArObject.bearing,
+                                    TextAlternateToTexture = "",
+                                };
+                                _ar3dObjects[json3dArObject.object_no] = new Ar3dPlane(tmpAdInfo, _clientInfo);
+                            }
+                        }
+                    }
+                }
+            }
+            // 오브젝트 목록 리퀘스트 주기: `intervalInSecond`초.
+            yield return new WaitForSeconds(intervalInSecond);
+        }
+    }
+
 
     /// <summary>
     /// 나침반 값과 카메라 각의 차를 모은다.
@@ -423,8 +592,8 @@ public class MainBehaviour : MonoBehaviour
     }
 
     /// <summary>
-    /// 주기적으로 _clientInfo.BearingDifferences의 평균값을 _clientInfo.BearingOffset에 저장하고,
-    /// 이를 이용해 _clientInfo.CurrentBearing을 업데이트하고 ArObject들을 올바른 위치에 재배치한다.
+    /// 주기적으로 _clientInfo.BearingDifferences의 평균값을
+    /// _clientInfo.CorrectedBearingOffset에 저장하고, 이를 이용해 ArObject들을 올바른 위치에 재배치한다.
     /// </summary>
     /// <param name="intervalInSecond"></param>
     /// <returns></returns>
@@ -566,11 +735,7 @@ public class MainBehaviour : MonoBehaviour
 
     private IEnumerator GetPointCoroutine()
     {
-
-        //showToastOnUiThread("adnumber "+adNumber);
-
         string userID = _userInfo.UserId;
-
 
         string fromServJson;
         WWWForm checkPointForm = new WWWForm();
@@ -607,6 +772,30 @@ public class MainBehaviour : MonoBehaviour
         //createObject("horse", 40, -1, 0);
     }
 
+    public void onClickGift2Btn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("gift_2", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+    public void onClickGift3Btn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("gift_3", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+    public void onClickGift4Btn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("gift_4", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
     public void onClickButterflyBtn()
     {
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
@@ -615,9 +804,32 @@ public class MainBehaviour : MonoBehaviour
         //createObject("horse", 40, -1, 0);
     }
 
+    public void onClickTreeBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("tree", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+    public void onClickGorillaBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("gorilla", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
+    public void onClickLightBtn()
+    {
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
+        //Vector3 unityPosition = GpsCalulator.CoordinateDifference(_clientInfo.StartingLatitude, _clientInfo.StartingLongitude, _clientInfo.StartingAltitude, 37.31263f, 126.8481f, 0);
+        createObject("light", unityPosition);
+        //createObject("horse", 40, -1, 0);
+    }
+
     public GameObject createObject(string typeName, Vector3 unityPosition)
     {
-        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
         var transform = Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as GameObject;
 
         string x = _clientInfo.CurrentLatitude.ToString();
@@ -631,7 +843,6 @@ public class MainBehaviour : MonoBehaviour
 
     private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
     {
-
         WWWForm form = new WWWForm();
         form.AddField("latitude", x);
         form.AddField("longitude", y);

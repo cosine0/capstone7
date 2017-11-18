@@ -25,6 +25,17 @@ public class AdInfo
     public float Height = 1.0f;
 };
 
+
+public class Ad3dInfo
+{
+    public int ObjectNumber;
+    public Vector3 GpsInfo;
+    public float Bearing = 0.0f;
+    public string typeName = null;
+    public string TextAlternateToTexture = "";
+};
+
+
 /// <summary>
 /// 댓글 하나를 나타내는 객체.
 /// </summary>
@@ -164,6 +175,95 @@ public class ArPlane : ArObject
         Info = null;
     }
 }
+
+
+
+/// <summary>
+/// 3d 형태의 광고 오브젝트.
+/// </summary>
+public class Ar3dPlane : ArObject
+{
+    public Ad3dInfo Info;
+    public GameObject CommentCanvas;
+
+    /// <summary>
+    /// 생성자. 광고 정보를 바탕으로 Unity 공간에 물체를 생성한다.
+    /// </summary>
+    /// <param name="info">광고 정보 오브젝트</param>
+    /// <param name="clientInfo">클라이언트 정보 오브젝트</param>
+    public Ar3dPlane(Ad3dInfo info, ClientInfo clientInfo)
+    {
+        Info = info;
+        ClientInfoObj = clientInfo;
+        Create();
+    }
+
+    public sealed override void Create()
+    {
+        StaticCoroutine.DoCoroutine(CreateObject());
+
+    }
+
+    /// <summary>
+    /// <see cref="Info"/>를 바탕으로 Unity 공간에 Plane 오브젝트를 생성하고 GameObj 멤버에 그 참조를 할당하는 코루틴.
+    /// </summary>
+    private IEnumerator CreateObject()
+    {
+        // 초기 포지션 설정
+        Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,
+            Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
+
+        GameObj = createObject(Info.typeName, unityPosition);
+        GameObj.name = Info.typeName;
+        ObjectType = ArObjectType.Ar3dObject; // 타입 지정
+        // Plane object의 DataContainer에 값 패싱
+        GameObj.GetComponent<DataContainer>().AdNum = Info.ObjectNumber;
+        GameObj.GetComponent<DataContainer>().CreatedCameraPosition =
+            new Vector3(ClientInfoObj.MainCamera.transform.position.x, ClientInfoObj.MainCamera.transform.position.y, ClientInfoObj.MainCamera.transform.position.z);
+        GameObj.GetComponent<DataContainer>().ObjectType = ArObjectType.Ar3dObject;
+
+        // GPS 정보를 사용하기 위해 GPS 초기화가 안된 경우 대기.
+        if (Application.platform == RuntimePlatform.Android)
+            yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
+
+        
+
+        unityPosition.y = 0; // 고도 사용 안함.
+
+        GameObj.transform.position = unityPosition;
+        GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
+        GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
+        // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
+        // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+
+    }
+
+    public GameObject createObject(string typeName, Vector3 unityPosition)
+    {
+        //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
+        var transform = MainBehaviour.Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as Transform;
+
+        return transform.gameObject;
+    }
+
+    public override void Update()
+    {
+        // 위치 또는 애니메이션 업데이트
+    }
+
+    /// <summary>
+    /// GameObj에 있는 물체를 Unity 공간에서 파괴한다.
+    /// </summary>
+    public override void Destroy()
+    {
+        MonoBehaviour.Destroy(GameObj);
+        GameObj = null;
+        Info = null;
+    }
+}
+
+
+
 
 public class ArCommentCanvas : ArObject
 {

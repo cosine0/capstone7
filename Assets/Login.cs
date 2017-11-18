@@ -97,6 +97,7 @@ public class Login : MonoBehaviour
                 {
                     Debug.Log("succeeded to sign in");
                     PwInputField.text = "";
+                    _clientInfo.GetComponent<ClientInfo>().OriginalValuesAreSet = false;
                     SceneManager.LoadScene("loadscene");
                 }
 

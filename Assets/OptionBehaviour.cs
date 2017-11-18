@@ -83,6 +83,7 @@ public class OptionBehaviour : MonoBehaviour {
             else
             {
                 ShowToastOnUiThread("Logout succeeded.");
+                _clientInfo.OriginalValuesAreSet = false;
                 SceneManager.LoadScene("login");
             }
         }
