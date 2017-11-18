@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 [System.Serializable]
 public class JsonPlaneData
@@ -27,6 +28,21 @@ public class JsonPointData
 {
     public int pointReward;
     public bool clickLogFlag;
+
+}
+
+[System.Serializable]
+public class JsonCommentData
+{
+    public string userId;
+    public string comment;
+    public string dateTime;
+}
+
+[System.Serializable]
+public class JsonCommentDataArray
+{
+    public JsonCommentData[] data;
 
 }
 
@@ -105,7 +121,7 @@ public class MainBehaviour : MonoBehaviour
             Vector2 touchPosition = Input.GetTouch(0).position;
 
             Ray ray = Camera.main.ScreenPointToRay(new Vector3(touchPosition.x, touchPosition.y, 0.0f));
-
+            
             switch (touch.phase)
             {
                 case TouchPhase.Began:
@@ -119,26 +135,39 @@ public class MainBehaviour : MonoBehaviour
 
                 case TouchPhase.Ended:
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 열고, 포인트 적립을 서버에 요청한다.
-                    RaycastHit hitObject;
-                    Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
-                    {
-                        Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
-                    }
-                    else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
-                    {
-                        //commentCanvas.SetActive(true);
-                        //inAppCanvas.SetActive(false);
+                    GraphicRaycaster _mainCanvas = GameObject.FindGameObjectWithTag("InAppCanvas").GetComponent<GraphicRaycaster>();
+                    List<RaycastResult> _results = new List<RaycastResult>();
+                    PointerEventData _ped = new PointerEventData(null);
+                    _ped.position = touch.position;
+                    _mainCanvas.Raycast(_ped, _results);
 
-                        // 연관 광고 정보 패싱
-                        commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                        // CreateCommentView();
-                        // - list clear
-                        // - get comment list
-                        // - list add
-                        // - scroll view area calculate
-                    }
+                    // UI를 터치하지 않은 경우
+                    if (_results.Count == 0)
+                    {
+                        RaycastHit hitObject;
+                        Physics.Raycast(ray, out hitObject, Mathf.Infinity);
+                        if (hitObject.collider != null)
+                        {
+                            if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
+                            {
+                                Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                            }
+                            else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                            {
+                                //commentCanvas.SetActive(true);
+                                //inAppCanvas.SetActive(false);
 
+                                // 연관 광고 정보 패싱
+                                commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                                // CreateCommentView();
+                                // - list clear
+                                // - get comment list
+                                // - list add
+                                // - scroll view area calculate
+                            }
+                        }
+                    }
+                    
                     break;
 
                 case TouchPhase.Canceled:
@@ -148,15 +177,16 @@ public class MainBehaviour : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
             }
         }
+    
 
         // 위치 정보 출력 (디버그)
         TextBox.GetComponent<Text>().text =
             "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.CorrectedBearingOffset
             + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
-            + "\nBearing: " + _clientInfo.CurrentBearing
+            + "\nBearing: " + Input.compass.trueHeading
             + "\nAverage (compass-gyro): " + _clientInfo.CorrectedBearingOffset
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.CorrectedBearingOffset) + ", "
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + _clientInfo.MainCamera.transform.eulerAngles.y + ", "
             + _clientInfo.MainCamera.transform.eulerAngles.z
             + "\nObject Count: " + _arObjects.Count
             + "\nCamera to object: ";
@@ -168,6 +198,7 @@ public class MainBehaviour : MonoBehaviour
             TextBox.GetComponent<Text>().text += cameraToObject + "\n";
         }
     }
+
 
     ///// <summary>
     ///// 나침반 센서 값을 카메라 방위각에 적용한다.
@@ -324,25 +355,45 @@ public class MainBehaviour : MonoBehaviour
     private IEnumerator GetArObjectList(float intervalInSecond = 5.0f)
     {
         // GPS 초기화가 될 때까지 대기
-        if (Application.platform == RuntimePlatform.Android)
-            if (!_clientInfo.OriginalValuesAreSet)
-                yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
+        //if (Application.platform == RuntimePlatform.Android)
+        //    if (!_clientInfo.OriginalValuesAreSet)
+        //        yield return new WaitUntil(() => _clientInfo.OriginalValuesAreSet);
 
         while (true)
         {
             string latitude = _clientInfo.CurrentLatitude.ToString();
             string longitude = _clientInfo.CurrentLongitude.ToString();
             string altitude = _clientInfo.CurrentAltitude.ToString();
+            string latitudeOption;
+            string longitudeOption;
+
+            if (_clientInfo.DistanceOption == 1)
+            {
+                latitudeOption = "0.0002";
+                longitudeOption = "0.0001";
+            }
+            else if (_clientInfo.DistanceOption == 2)
+            {
+                latitudeOption = "0.0004";
+                longitudeOption = "0.0002";
+            }
+            else
+            {
+                latitudeOption = "0.0006";
+                longitudeOption = "0.0003";
+            }
 
             // 테스트용 GPS
-            //latitude = "37.450571";
-            //longitude = "126.656903";
-            //altitude = "53.000000";
+            latitude = "37.450700";
+            longitude = "126.657100";
+            altitude = "53.000000";
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
             form.AddField("longitude", longitude);
             form.AddField("altitude", altitude);
+            form.AddField("latitudeOption", latitudeOption);
+            form.AddField("longitudeOption", longitudeOption);
 
             // GPS 정보를 서버에 POST
             using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
@@ -428,19 +479,23 @@ public class MainBehaviour : MonoBehaviour
     {
         while (true)
         {
-            // 각의 차를 [-180, 180]안의 값으로 만들기
-            var difference = (Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y);
-            if (difference > 180f)
-                difference -= 360;
-            else if (difference < -180f)
-                difference += 360;
+            var gyroAngles = _clientInfo.MainCamera.transform.eulerAngles;
+            // 자이로 센서를 바탕으로 기기가 아래(75~90도)나 위(270~285도)를 보고 있을 때는 카운트 하지 않음
+            if ((0f <= gyroAngles.x && gyroAngles.x < 75f) || (285f < gyroAngles.x && gyroAngles.x <= 360f))
+            {
+                var difference = Input.compass.trueHeading - gyroAngles.y;
 
-            // 버퍼에 각 차이 저장
-            _clientInfo.BearingDifferences[_clientInfo.BearingDifferenceIndex] = difference;
-            _clientInfo.BearingDifferenceIndex++;
-            _clientInfo.BearingDifferenceIndex %= Constants.BearingDifferenceBufferSize;
+                // 버퍼에 각 차이 저장
+                _clientInfo.BearingDifferenceBuffer[_clientInfo.BearingDifferenceIndex] = difference;
+                _clientInfo.BearingDifferenceIndex++;
+                if (_clientInfo.BearingDifferenceIndex == Constants.BearingDifferenceBufferSize)
+                {
+                    _clientInfo.BearingDifferenceBufferFilled = true;
+                    _clientInfo.BearingDifferenceIndex = 0;
+                }
 
-            // 나침반 측정 주기: `intervalInSecond`초
+                // 나침반 측정 주기: `intervalInSecond`초
+            }
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
@@ -455,20 +510,36 @@ public class MainBehaviour : MonoBehaviour
     {
         while (true)
         {
-            // (나침반 - 메인카메라 각) 값 평균 계산. [-180, 180] 안의 값으로 나온다.
-            float averageDifference = 0.0f;
-            for (int i = 0; i < Constants.BearingDifferenceBufferSize; i++)
-                averageDifference += _clientInfo.BearingDifferences[i];
-            averageDifference /= Constants.BearingDifferenceBufferSize;
+            // (나침반 - 메인카메라 각) 값 평균 계산. CorrectedBearingOffset +/-180 안의 값으로 나온다.
+            float averageOfDifferences = 0.0f;
+            int bufferCount;
+            if (_clientInfo.BearingDifferenceBufferFilled)
+                bufferCount = Constants.BearingDifferenceBufferSize;
+            else
+                bufferCount = _clientInfo.BearingDifferenceIndex;
+
+            for (int i = 0; i < bufferCount; i++)
+            {
+                var difference = _clientInfo.BearingDifferenceBuffer[i];
+
+                // CorrectedBearingOffset +/-180 값 안으로 들어오도록 조정
+                if (difference > _clientInfo.CorrectedBearingOffset + 180)
+                    difference -= 360;
+                else if (difference < _clientInfo.CorrectedBearingOffset - 180)
+                    difference += 360;
+                averageOfDifferences += difference;
+            }
+            averageOfDifferences /= bufferCount;
+            averageOfDifferences %= 360f;
 
             // Bearing Offset 값을 새로 계산된 값으로 반영
-            _clientInfo.CorrectedBearingOffset = averageDifference;
+            _clientInfo.CorrectedBearingOffset = averageOfDifferences;
 
             foreach (var arObject in _arObjects.Values)
             {
                 // 모든 물체를 생성시 카메라 포지션 기준 회전
                 arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
-                    , new Vector3(0.0f, 1.0f, 0.0f), averageDifference - _clientInfo.CorrectedBearingOffset);
+                    , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
             }
 
             yield return new WaitForSeconds(intervalInSecond);
@@ -660,7 +731,6 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-
     public void HideCommnetView()
     {
         commentViewCanvas.SetActive(false);
@@ -675,6 +745,6 @@ public class MainBehaviour : MonoBehaviour
     }
     public void TestButton()
     {
-        _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
+        //_clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
     }
 }
