@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
 
 public class LoadingCanvasBehaviour : MonoBehaviour {
-    public bool activeFlag = false;
+    public bool IsActive = false;
 
 	public void ShowLodingCanvas()
     {
-        activeFlag = true;
+        IsActive = true;
         gameObject.SetActive(true);
     }
 
     public void HideLodingCanvas()
     {
-        activeFlag = false;
+        IsActive = false;
         gameObject.SetActive(false);
     }
 }

@@ -144,7 +144,7 @@ public class ArPlane : ArObject
         GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
-        GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
+        GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
         // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
     }

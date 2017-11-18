@@ -7,5 +7,5 @@ static class Constants
     public const float SmoothThresholdCompass = 45.0f;
     public const float CompassMeasureIntervalInSecond = 0.1f;
     public const float GpsMeasureIntervalInSecond = 0.3f;
-    public const int BearingDifferenceBufferSize = 100;
+    public const int BearingDifferenceBufferSize = 600;
 }

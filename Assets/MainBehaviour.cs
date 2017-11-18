@@ -153,13 +153,16 @@ public class MainBehaviour : MonoBehaviour
 
         // 위치 정보 출력 (디버그)
         TextBox.GetComponent<Text>().text =
-            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " + _clientInfo.StartingAltitude + ", " + _clientInfo.CorrectedBearingOffset
-            + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " + _clientInfo.CurrentAltitude
-            + "\nBearing: " + _clientInfo.CurrentBearing
-            + "\nAverage (compass-gyro): " + _clientInfo.CorrectedBearingOffset
+            "Origin: " + _clientInfo.StartingLatitude + ", " + _clientInfo.StartingLongitude + ", " +
+            _clientInfo.StartingAltitude
+            + "\nGPS: " + _clientInfo.CurrentLatitude + ", " + _clientInfo.CurrentLongitude + ", " +
+            _clientInfo.CurrentAltitude
             + "\ncamera position: " + _clientInfo.MainCamera.transform.position
-            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles.x + ", " + (_clientInfo.MainCamera.transform.eulerAngles.y + _clientInfo.CorrectedBearingOffset) + ", "
-            + _clientInfo.MainCamera.transform.eulerAngles.z
+            + "\ncamera angle: " + _clientInfo.MainCamera.transform.eulerAngles
+            + "\ncompass: " + Input.compass.trueHeading
+            + "\nCurrent (compass-gyro): " + ((Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y) % 360f + 360f) % 360f
+            + "\nAverage (compass-gyro): " + (_clientInfo.CorrectedBearingOffset % 360f + 360f) % 360f
+            + "\nCorrected Bearing: " + (_clientInfo.CurrentBearing % 360f + 360f) % 360f
             + "\nObject Count: " + _arObjects.Count
             + "\nCamera to object: ";
 
@@ -170,56 +173,6 @@ public class MainBehaviour : MonoBehaviour
             TextBox.GetComponent<Text>().text += cameraToObject + "\n";
         }
     }
-
-    ///// <summary>
-    ///// 나침반 센서 값을 카메라 방위각에 적용한다.
-    ///// </summary>
-    //private void UpdateCameraBearing()
-    //{
-    //    // Input.compass.trueHeading의 값과 지도상의 방향 매칭:
-    //    //          0.0:
-    //    //          북
-    //    // 270.0:서    동:90.0
-    //    //          남
-    //    //          :180.0
-    //    // 로우 패스 (스무딩) 필터
-    //    float newBearing = Input.compass.trueHeading;
-    //    if (Mathf.Abs(newBearing - _clientInfo.CurrentBearing) < 180)
-    //    {
-    //        if (Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
-    //        {
-    //            _clientInfo.CurrentBearing = newBearing;
-    //        }
-    //        else
-    //        {
-    //            _clientInfo.CurrentBearing = _clientInfo.CurrentBearing + Constants.SmoothFactorCompass * (newBearing - _clientInfo.CurrentBearing);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        if (360.0 - Math.Abs(newBearing - _clientInfo.CurrentBearing) > Constants.SmoothThresholdCompass)
-    //        {
-    //            _clientInfo.CurrentBearing = newBearing;
-    //        }
-    //        else
-    //        {
-    //            if (_clientInfo.CurrentBearing > newBearing)
-    //            {
-    //                _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing + Constants.SmoothFactorCompass * ((360 + newBearing - _clientInfo.CurrentBearing) % 360) +
-    //                                  360) % 360;
-    //            }
-    //            else
-    //            {
-    //                _clientInfo.CurrentBearing = (_clientInfo.CurrentBearing - Constants.SmoothFactorCompass * ((360 - newBearing + _clientInfo.CurrentBearing) % 360) +
-    //                                  360) % 360;
-    //            }
-    //        }
-    //    }
-    //
-    //    Vector3 newCameraAngle = _clientInfo.MainCamera.transform.eulerAngles;
-    //    newCameraAngle.y = _clientInfo.CurrentBearing;
-    //    _clientInfo.MainCamera.transform.eulerAngles = newCameraAngle;
-    //}
 
     /// <summary>
     /// <see cref="_clientInfo"/>의 GPS값을 카메라 위치에 적용한다.
@@ -349,7 +302,7 @@ public class MainBehaviour : MonoBehaviour
             }
             else {
                 latitudeOption = "0.0006";
-                longitudeOption = "0.000";
+                longitudeOption = "0.0003";
             }
 
 
@@ -448,12 +401,7 @@ public class MainBehaviour : MonoBehaviour
     {
         while (true)
         {
-            // 각의 차를 [-180, 180]안의 값으로 만들기
-            var difference = (Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y);
-            if (difference > 180f)
-                difference -= 360;
-            else if (difference < -180f)
-                difference += 360;
+            var difference = Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y;
 
             // 버퍼에 각 차이 저장
             _clientInfo.BearingDifferenceBuffer[_clientInfo.BearingDifferenceIndex] = difference;
@@ -479,8 +427,8 @@ public class MainBehaviour : MonoBehaviour
     {
         while (true)
         {
-            // (나침반 - 메인카메라 각) 값 평균 계산. [-180, 180] 안의 값으로 나온다.
-            float averageDifference = 0.0f;
+            // (나침반 - 메인카메라 각) 값 평균 계산. CorrectedBearingOffset +/-180 안의 값으로 나온다.
+            float averageOfDifferences = 0.0f;
             int bufferCount;
             if (_clientInfo.BearingDifferenceBufferFilled)
                 bufferCount = Constants.BearingDifferenceBufferSize;
@@ -488,18 +436,27 @@ public class MainBehaviour : MonoBehaviour
                 bufferCount = _clientInfo.BearingDifferenceIndex;
 
             for (int i = 0; i < bufferCount; i++)
-                averageDifference += _clientInfo.BearingDifferenceBuffer[i];
+            {
+                var difference = _clientInfo.BearingDifferenceBuffer[i];
 
-            averageDifference /= bufferCount;
+                // CorrectedBearingOffset +/-180 값 안으로 들어오도록 조정
+                if (difference > _clientInfo.CorrectedBearingOffset + 180)
+                    difference -= 360;
+                else if (difference < _clientInfo.CorrectedBearingOffset - 180)
+                    difference += 360;
+                averageOfDifferences += difference;
+            }
+            averageOfDifferences /= bufferCount;
+            averageOfDifferences %= 360f;
 
             // Bearing Offset 값을 새로 계산된 값으로 반영
-            _clientInfo.CorrectedBearingOffset = averageDifference;
+            _clientInfo.CorrectedBearingOffset = averageOfDifferences;
 
             foreach (var arObject in _arObjects.Values)
             {
                 // 모든 물체를 생성시 카메라 포지션 기준 회전
                 arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
-                    , new Vector3(0.0f, 1.0f, 0.0f), averageDifference - _clientInfo.CorrectedBearingOffset);
+                    , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
             }
 
             yield return new WaitForSeconds(intervalInSecond);
@@ -653,10 +610,10 @@ public class MainBehaviour : MonoBehaviour
         //createObject("horse", 40, -1, 0);
     }
 
-    public void createObject(string typeName, Vector3 unityPosition)
+    public GameObject createObject(string typeName, Vector3 unityPosition)
     {
         //Instantiate(obj, new Vector3(40, -1, 0.0f), Quaternion.identity);
-        Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity);
+        var transform = Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as GameObject;
 
         string x = _clientInfo.CurrentLatitude.ToString();
         string y = _clientInfo.CurrentLongitude.ToString();
@@ -664,6 +621,7 @@ public class MainBehaviour : MonoBehaviour
         string bearing = _clientInfo.CurrentBearing.ToString();
         StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing));
 
+        return transform.gameObject;
     }
 
     private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
