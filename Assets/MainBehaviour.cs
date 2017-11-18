@@ -830,18 +830,15 @@ public class MainBehaviour : MonoBehaviour
 
     public GameObject createObject(string typeName, Vector3 unityPosition)
     {
-        var transform = Instantiate(Resources.Load("Prefabs/" + typeName), unityPosition, Quaternion.identity) as GameObject;
-
         string x = _clientInfo.CurrentLatitude.ToString();
         string y = _clientInfo.CurrentLongitude.ToString();
         string z = _clientInfo.CurrentAltitude.ToString();
         string bearing = _clientInfo.CurrentBearing.ToString();
-        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing));
-
-        return transform.gameObject;
+        string point = _userInfo.Point.ToString();
+        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing, point));
     }
 
-    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
+    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing, string point)
     {
         WWWForm form = new WWWForm();
         form.AddField("latitude", x);
@@ -850,6 +847,8 @@ public class MainBehaviour : MonoBehaviour
         form.AddField("typeName", typeName);
         form.AddField("user", id);
         form.AddField("bearing", bearing);
+        form.AddField("point", point);
+
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
         {
             yield return www.Send();
