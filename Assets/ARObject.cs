@@ -151,49 +151,47 @@ public class ArPlane : ArObject
 
     private IEnumerator CreateCommentCanvas(int _adNumber, ArPlane arPlaneObject)
     {
-        while (true)
-        {
-            yield return new WaitUntil(() => (ClientInfoObj.CommentViewOption == true));
+        yield return new WaitUntil(() => (ClientInfoObj.CommentViewOption == true));
 
-            WWWForm form = new WWWForm();
-            form.AddField("adNumber", _adNumber);
+        WWWForm form = new WWWForm();
+        form.AddField("adNumber", _adNumber);
 
-            //using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/phppagename.php", form))
-            //{
-            //    yield return www.Send();
+        //using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/phppagename.php", form))
+        //{
+        //    yield return www.Send();
 
-            //    if (www.isNetworkError || www.isHttpError)
-            //    {
-            //        Debug.Log(www.error);
-            //    }
-            //    else
-            //    {
-            //        string responseJsonString = www.downloadHandler.text;
-            //        JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
+        //    if (www.isNetworkError || www.isHttpError)
+        //    {
+        //        Debug.Log(www.error);
+        //    }
+        //    else
+        //    {
+        //        string responseJsonString = www.downloadHandler.text;
+        //        JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
 
-            //        // instantiate 한 object 정보
-                    Debug.Log("canvas Create");
-                    GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
-                    // ad plane member로 할당
-                    arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
-                    // ad plane 인근 위치로 이동 및 회전
-                    arPlaneObject.Update();
+        //        // instantiate 한 object 정보
+                Debug.Log("canvas Create");
+                GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
+                // ad plane member로 할당
+                arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
+                // ad plane 인근 위치로 이동 및 회전
+                yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
+                arPlaneObject.Update();
 
-            //        for (int i = 0; i < commentList.data.Length; i++)
-            //        {
-            //            // comment 정보 채우기
-            //            // comment panel instantiate
-            //            GameObject commentPanel = (MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel")) as Transform).gameObject;
-            //            // 부모 자식 관계 생성
-            //            commentPanel.transform.parent = canvasObject.transform;
-            //            // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
-            //            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
-            //            //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
-            //            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
-            //        }
-            //    }
-            //}
-        }
+        //        for (int i = 0; i < commentList.data.Length; i++)
+        //        {
+        //            // comment 정보 채우기
+        //            // comment panel instantiate
+        //            GameObject commentPanel = (MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel")) as Transform).gameObject;
+        //            // 부모 자식 관계 생성
+        //            commentPanel.transform.parent = canvasObject.transform;
+        //            // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
+        //            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
+        //            //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
+        //            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
+        //        }
+        //    }
+        //}
     }
 
     public override void Update()
@@ -203,16 +201,17 @@ public class ArPlane : ArObject
         CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
         CommentCanvas.GameObj.transform.eulerAngles = this.GameObj.transform.eulerAngles;
 
+
         Vector3 _localRotation = CommentCanvas.GameObj.transform.localEulerAngles;
         Transform _parent = this.GameObj.transform;
         Transform _canvas = CommentCanvas.GameObj.transform;
+
         // object multiplier = 5(local width, height 10/2)
         // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
-        
+
         //CommentCanvas.GameObj.transform.position = new Vector3(_parent.position.x + (_parent.localScale.x * 5.0f) + (_canvas.transform.localScale.x * 500.0f) + 1,
         //    _parent.position.y + (_parent.localScale.z - _canvas.localScale.z) * 5.0f,
         //    planeObject.transform.position.z);
-
     }
 
     /// <summary>
@@ -240,12 +239,11 @@ public class ArPlane : ArObject
 
 public class ArCommentCanvas : ArObject
 {
-    GameObject commentCanvas;
 
     public ArCommentCanvas(GameObject obj)
     {
         Create();
-        commentCanvas = obj;
+        GameObj = obj;
     }
 
     public override void Create()
