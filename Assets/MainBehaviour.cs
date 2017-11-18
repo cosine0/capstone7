@@ -401,18 +401,23 @@ public class MainBehaviour : MonoBehaviour
     {
         while (true)
         {
-            var difference = Input.compass.trueHeading - _clientInfo.MainCamera.transform.eulerAngles.y;
-
-            // 버퍼에 각 차이 저장
-            _clientInfo.BearingDifferenceBuffer[_clientInfo.BearingDifferenceIndex] = difference;
-            _clientInfo.BearingDifferenceIndex++;
-            if (_clientInfo.BearingDifferenceIndex == Constants.BearingDifferenceBufferSize)
+            var gyroAngles = _clientInfo.MainCamera.transform.eulerAngles;
+            // 자이로 센서를 바탕으로 기기가 아래(75~90도)나 위(270~285도)를 보고 있을 때는 카운트 하지 않음
+            if ((0f <= gyroAngles.x && gyroAngles.x < 75f) || (285f < gyroAngles.x && gyroAngles.x <= 360f))
             {
-                _clientInfo.BearingDifferenceBufferFilled = true;
-                _clientInfo.BearingDifferenceIndex = 0;
-            }
+                var difference = Input.compass.trueHeading - gyroAngles.y;
 
-            // 나침반 측정 주기: `intervalInSecond`초
+                // 버퍼에 각 차이 저장
+                _clientInfo.BearingDifferenceBuffer[_clientInfo.BearingDifferenceIndex] = difference;
+                _clientInfo.BearingDifferenceIndex++;
+                if (_clientInfo.BearingDifferenceIndex == Constants.BearingDifferenceBufferSize)
+                {
+                    _clientInfo.BearingDifferenceBufferFilled = true;
+                    _clientInfo.BearingDifferenceIndex = 0;
+                }
+
+                // 나침반 측정 주기: `intervalInSecond`초
+            }
             yield return new WaitForSeconds(intervalInSecond);
         }
     }
@@ -449,8 +454,6 @@ public class MainBehaviour : MonoBehaviour
             averageOfDifferences /= bufferCount;
             averageOfDifferences %= 360f;
 
-            // Bearing Offset 값을 새로 계산된 값으로 반영
-            _clientInfo.CorrectedBearingOffset = averageOfDifferences;
 
             foreach (var arObject in _arObjects.Values)
             {
@@ -458,6 +461,8 @@ public class MainBehaviour : MonoBehaviour
                 arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
                     , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
             }
+            // Bearing Offset 값을 새로 계산된 값으로 반영
+            _clientInfo.CorrectedBearingOffset = averageOfDifferences;
 
             yield return new WaitForSeconds(intervalInSecond);
         }
