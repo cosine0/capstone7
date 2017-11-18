@@ -30,7 +30,7 @@ public class horseAnimation : MonoBehaviour
     public void onClickBtn()
     {
         //createObject("horse", _clientInfo.CurrentLatitude, _clientInfo.CurrentLongitude, 0);
-        createObject("gift_4", 70, 2, 0);
+        createObject("gorilla", 70, 2, 0);
     }
 
 

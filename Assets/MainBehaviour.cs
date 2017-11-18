@@ -890,10 +890,11 @@ public class MainBehaviour : MonoBehaviour
         string y = _clientInfo.CurrentLongitude.ToString();
         string z = _clientInfo.CurrentAltitude.ToString();
         string bearing = _clientInfo.CurrentBearing.ToString();
-        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing));
+        string point = _userInfo.Point.ToString();
+        StartCoroutine(ObjectCreateCoroutine(x, y, z, typeName, _userInfo.UserId, bearing, point));
     }
 
-    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing)
+    private IEnumerator ObjectCreateCoroutine(string x, string y, string z, string typeName, string id, string bearing, string point)
     {
 
         //ShowToastOnUiThread(x + "," + y + "," +z + "," +typeName + "," +id + "," +bearing);
@@ -905,6 +906,8 @@ public class MainBehaviour : MonoBehaviour
         form.AddField("typeName", typeName);
         form.AddField("user", id);
         form.AddField("bearing", bearing);
+        form.AddField("point", bearing);
+
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
         {
             yield return www.Send();
