@@ -141,7 +141,7 @@ public class ArPlane : ArObject
 
         unityPosition.y = 0; // 고도 사용 안함.
 
-        GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
+        GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, Info.Height);
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
         GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
@@ -170,48 +170,56 @@ public class ArPlane : ArObject
         //        JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
 
         //        // instantiate 한 object 정보
-                Debug.Log("canvas Create");
-                GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
-                // ad plane member로 할당
-                arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
-                // ad plane 인근 위치로 이동 및 회전
-                yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
-                arPlaneObject.Update();
+            Debug.Log("canvas Create");
+            GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
+            // ad plane member로 할당
+            arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
+            // ad plane 인근 위치로 이동 및 회전
+            yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
+            CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
+            CommentCanvas.GameObj.transform.eulerAngles = new Vector3(0.0f, this.Info.Bearing + 90.0f, 0.0f);
+            CommentCanvas.GameObj.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+
+            // commentCanvas move and rotate
+             yield return new WaitUntil(() => (CommentCanvas != null && this.GameObj != null));
+
+            // ad plane의 scale 이 1보다 작을 경우 commentcanvas scale링 필요할 것으로 보임
+
+            // local space 기준 기동
+            Vector3 movement = new Vector3((this.GameObj.transform.localScale.x * 5.0f + (CommentCanvas.GameObj.transform.localScale.x * 500)) + 1,
+                (this.GameObj.transform.localScale.y - (CommentCanvas.GameObj.transform.localScale.y * 100)) * 5.0f, 0.0f);
+
+            CommentCanvas.GameObj.transform.Translate(movement, Space.Self);
+
+            // object multiplier = 5(local width, height 10/2)
+            // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
+
+       
+
+        //test set
+            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false);
+            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "id123";
+            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = "Hello";
 
         //        for (int i = 0; i < commentList.data.Length; i++)
         //        {
         //            // comment 정보 채우기
         //            // comment panel instantiate
-        //            GameObject commentPanel = (MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel")) as Transform).gameObject;
+        //            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
         //            // 부모 자식 관계 생성
-        //            commentPanel.transform.parent = canvasObject.transform;
+        //            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false); // parent properties inheritance false
         //            // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
         //            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
         //            //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
         //            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
         //        }
-        //    }
         //}
     }
 
     public override void Update()
     {
         // 위치 또는 애니메이션 업데이트
-        // commentCanvas move and rotate
-        CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
-        CommentCanvas.GameObj.transform.eulerAngles = this.GameObj.transform.eulerAngles;
-
-
-        Vector3 _localRotation = CommentCanvas.GameObj.transform.localEulerAngles;
-        Transform _parent = this.GameObj.transform;
-        Transform _canvas = CommentCanvas.GameObj.transform;
-
-        // object multiplier = 5(local width, height 10/2)
-        // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
-
-        //CommentCanvas.GameObj.transform.position = new Vector3(_parent.position.x + (_parent.localScale.x * 5.0f) + (_canvas.transform.localScale.x * 500.0f) + 1,
-        //    _parent.position.y + (_parent.localScale.z - _canvas.localScale.z) * 5.0f,
-        //    planeObject.transform.position.z);
     }
 
     /// <summary>

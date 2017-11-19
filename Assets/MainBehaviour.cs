@@ -114,6 +114,15 @@ public class MainBehaviour : MonoBehaviour
         //UpdateCameraBearing();
         UpdateCameraPosition();
 
+        if (_arObjects.Count != 0)
+        {
+            foreach (var arObject in _arObjects.Values)
+            {
+                if (arObject.ObjectType == ArObjectType.AdPlane)
+                    arObject.Update();
+            }
+        }
+        
         if (Input.touchCount > 0)
         {
             // 화면을 터치했을 때
@@ -383,10 +392,15 @@ public class MainBehaviour : MonoBehaviour
                 longitudeOption = "0.0003";
             }
 
-            // 테스트용 GPS
+            //테스트용 GPS
             latitude = "37.450700";
             longitude = "126.657100";
             altitude = "53.000000";
+
+            _clientInfo.StartingLatitude = 37.450700f;
+            _clientInfo.StartingLongitude = 126.657100f;
+            _clientInfo.StartingAltitude = 53.000000f;
+            //////////////////////////////
 
             WWWForm form = new WWWForm();
             form.AddField("latitude", latitude);
@@ -539,6 +553,9 @@ public class MainBehaviour : MonoBehaviour
             {
                 // 모든 물체를 생성시 카메라 포지션 기준 회전
                 arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
+                    , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
+                
+                ((ArPlane)arObject).CommentCanvas.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
                     , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
             }
 
