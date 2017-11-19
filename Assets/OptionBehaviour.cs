@@ -18,10 +18,14 @@ public class OptionBehaviour : MonoBehaviour {
     /// </summary>
     private UserInfo _userInfo;
 
-	void Start () {
+    private JsonPointData _pointData;
+
+    void Start () {
         // DontDestroyOnLoad 객체 가져오기
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
         _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
+
+        StartCoroutine(GetPointCoroutine());
 
         // 사용자 아이디 필드에 값 표시
         GameObject.FindGameObjectWithTag("OptionUserId").GetComponent<Text>().text = "    " + _userInfo.UserId;
@@ -118,5 +122,28 @@ public class OptionBehaviour : MonoBehaviour {
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", _toastString);
         AndroidJavaObject toast = toastClass.CallStatic<AndroidJavaObject>("makeText", context, javaString, toastClass.GetStatic<int>("LENGTH_SHORT"));
         toast.Call("show");
+    }
+
+    private IEnumerator GetPointCoroutine()
+    {
+        string userID = _userInfo.UserId;
+
+        string fromServJson;
+        WWWForm checkPointForm = new WWWForm();
+        checkPointForm.AddField("Input_user", userID);
+
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/show_point.php", checkPointForm))
+        {
+            yield return www.Send();
+
+            if (www.isNetworkError || www.isHttpError)
+                Debug.Log(www.error);
+            else
+            {
+                fromServJson = www.downloadHandler.text;
+                _pointData = JsonUtility.FromJson<JsonPointData>(fromServJson);
+                _userInfo.Point = _pointData.pointReward;
+            }
+        }
     }
 }
