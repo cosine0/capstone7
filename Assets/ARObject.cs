@@ -226,7 +226,7 @@ public class Ar3dPlane : ArObject
         unityPosition.y = 0; // 고도 사용 안함.
 
         GameObj.transform.position = unityPosition;
-        GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
+        GameObj.transform.eulerAngles = new Vector3(0, Info.Bearing, 0);
         GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), -ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
     }
 
