@@ -7,7 +7,8 @@ using UnityEngine.UI;
 /// <summary>
 /// 옵션 설정 창 내부에서 사용하는 코드를 갖는 Behaviour.
 /// </summary>
-public class OptionBehaviour : MonoBehaviour {
+public class OptionBehaviour : MonoBehaviour
+{
     /// <summary>
     /// 클라이언트 정보를 갖는 DontDestroyOnLoad 객체에 대한 참조
     /// </summary>
@@ -20,7 +21,9 @@ public class OptionBehaviour : MonoBehaviour {
 
     private JsonPointData _pointData;
 
-    void Start () {
+    public GameObject viewPanel;
+    void Start()
+    {
         // DontDestroyOnLoad 객체 가져오기
         _clientInfo = GameObject.FindGameObjectWithTag("ClientInfo").GetComponent<ClientInfo>();
         _userInfo = GameObject.FindGameObjectWithTag("UserInfo").GetComponent<UserInfo>();
@@ -52,11 +55,11 @@ public class OptionBehaviour : MonoBehaviour {
         // 버전 정보 필드에 값 표시
         GameObject.FindGameObjectWithTag("OptionVersionInfo").GetComponent<Text>().text = _clientInfo.VersionInfo;
     }
-	
-	void Update ()
+
+    void Update()
     {
-		
-	}
+
+    }
 
     /// <summary>
     ///  뒤로 가기 버튼에 바인드. 인앱 scene으로 돌아간다.
@@ -143,7 +146,13 @@ public class OptionBehaviour : MonoBehaviour {
                 fromServJson = www.downloadHandler.text;
                 _pointData = JsonUtility.FromJson<JsonPointData>(fromServJson);
                 _userInfo.Point = _pointData.pointReward;
+                GameObject.FindGameObjectWithTag("OptionUserPoint").GetComponent<Text>().text = "    " + _userInfo.Point;
             }
         }
+    }
+
+    public void clickViewBtn()
+    {
+        SceneManager.LoadScene("viewComment");
     }
 }
