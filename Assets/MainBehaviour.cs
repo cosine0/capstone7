@@ -828,7 +828,7 @@ public class MainBehaviour : MonoBehaviour
         //createObject("horse", 40, -1, 0);
     }
 
-    public GameObject createObject(string typeName, Vector3 unityPosition)
+    public void createObject(string typeName, Vector3 unityPosition)
     {
         string x = _clientInfo.CurrentLatitude.ToString();
         string y = _clientInfo.CurrentLongitude.ToString();
