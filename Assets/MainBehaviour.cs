@@ -906,7 +906,7 @@ public class MainBehaviour : MonoBehaviour
         form.AddField("typeName", typeName);
         form.AddField("user", id);
         form.AddField("bearing", bearing);
-        form.AddField("point", bearing);
+        form.AddField("point", point);
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
         {
