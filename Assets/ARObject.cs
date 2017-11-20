@@ -90,7 +90,7 @@ public abstract class ArObject
 public class ArPlane : ArObject
 {
     public AdInfo Info;
-    public GameObject CommentCanvas;
+    public ArCommentCanvas CommentCanvas;
 
     /// <summary>
     /// 생성자. 광고 정보를 바탕으로 Unity 공간에 물체를 생성한다.
@@ -109,7 +109,7 @@ public class ArPlane : ArObject
         StaticCoroutine.DoCoroutine(CreateObject());
         if (Info.TextureUrl != null)
             StaticCoroutine.DoCoroutine(GetWebTexture());
-
+        CreateCommentCanvas();
     }
 
     /// <summary>
@@ -151,12 +151,80 @@ public class ArPlane : ArObject
 
         unityPosition.y = 0; // 고도 사용 안함.
 
-        GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, 1.0f);
+        GameObj.transform.localScale = new Vector3(Info.Width, Info.Height, Info.Height);
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(90.0f, Info.Bearing - 90.0f, 90.0f);
         GameObj.transform.RotateAround(ClientInfoObj.MainCamera.transform.position, new Vector3(0.0f, 1.0f, 0.0f), ClientInfoObj.CorrectedBearingOffset); // 카메라 포지션 기준 회전
         // GameOBJ.transform.rotation = Quaternion.Euler(90.0f, -90.0f, 90.0f);
         // 모든 plane은 new Vector3(90.0f, -90.0f, 90.0f); 만큼 회전해야함 
+    }
+
+    private IEnumerator CreateCommentCanvas(int _adNumber, ArPlane arPlaneObject)
+    {
+        yield return new WaitUntil(() => (ClientInfoObj.CommentViewOption == true));
+
+        WWWForm form = new WWWForm();
+        form.AddField("adNumber", _adNumber);
+
+        //using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/phppagename.php", form))
+        //{
+        //    yield return www.Send();
+
+        //    if (www.isNetworkError || www.isHttpError)
+        //    {
+        //        Debug.Log(www.error);
+        //    }
+        //    else
+        //    {
+        //        string responseJsonString = www.downloadHandler.text;
+        //        JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
+
+        //        // instantiate 한 object 정보
+            Debug.Log("canvas Create");
+            GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
+            // ad plane member로 할당
+            arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
+            // ad plane 인근 위치로 이동 및 회전
+            yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
+            CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
+            CommentCanvas.GameObj.transform.eulerAngles = new Vector3(0.0f, this.Info.Bearing + 90.0f, 0.0f);
+            CommentCanvas.GameObj.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+
+            // commentCanvas move and rotate
+             yield return new WaitUntil(() => (CommentCanvas != null && this.GameObj != null));
+
+            // ad plane의 scale 이 1보다 작을 경우 commentcanvas scale링 필요할 것으로 보임
+
+            // local space 기준 기동
+            Vector3 movement = new Vector3((this.GameObj.transform.localScale.x * 5.0f + (CommentCanvas.GameObj.transform.localScale.x * 500)) + 1,
+                (this.GameObj.transform.localScale.y - (CommentCanvas.GameObj.transform.localScale.y * 100)) * 5.0f, 0.0f);
+
+            CommentCanvas.GameObj.transform.Translate(movement, Space.Self);
+
+            // object multiplier = 5(local width, height 10/2)
+            // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
+
+       
+
+        //test set
+            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false);
+            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "id123";
+            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = "Hello";
+
+        //        for (int i = 0; i < commentList.data.Length; i++)
+        //        {
+        //            // comment 정보 채우기
+        //            // comment panel instantiate
+        //            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+        //            // 부모 자식 관계 생성
+        //            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false); // parent properties inheritance false
+        //            // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
+        //            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
+        //            //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
+        //            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
+        //        }
+        //}
     }
 
     public override void Update()
@@ -170,8 +238,20 @@ public class ArPlane : ArObject
     public override void Destroy()
     {
         MonoBehaviour.Destroy(GameObj);
+        DestroyCommentCanvas();
         GameObj = null;
         Info = null;
+    }
+
+    public void CreateCommentCanvas()
+    {
+        StaticCoroutine.DoCoroutine(CreateCommentCanvas(this.Info.AdNumber, this));
+    }
+
+    public void DestroyCommentCanvas()
+    {
+       CommentCanvas.Destroy();
+       CommentCanvas = null;
     }
 }
 
@@ -255,11 +335,11 @@ public class Ar3dPlane : ArObject
 
 public class ArCommentCanvas : ArObject
 {
-    Canvas arCommentCanvas;
 
-    public ArCommentCanvas()
+    public ArCommentCanvas(GameObject obj)
     {
-
+        Create();
+        GameObj = obj;
     }
 
     public override void Create()

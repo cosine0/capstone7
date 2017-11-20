@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 [System.Serializable]
 public class JsonPlaneData
@@ -39,6 +40,21 @@ public class JsonPointData
 {
     public int pointReward;
     public bool clickLogFlag;
+
+}
+
+[System.Serializable]
+public class JsonCommentData
+{
+    public string userId;
+    public string comment;
+    public string dateTime;
+}
+
+[System.Serializable]
+public class JsonCommentDataArray
+{
+    public JsonCommentData[] data;
 
 }
 
@@ -120,6 +136,15 @@ public class MainBehaviour : MonoBehaviour
         //UpdateCameraBearing();
         UpdateCameraPosition();
 
+        if (_arObjects.Count != 0)
+        {
+            foreach (var arObject in _arObjects.Values)
+            {
+                if (arObject.ObjectType == ArObjectType.AdPlane)
+                    arObject.Update();
+            }
+        }
+        
         if (Input.touchCount > 0)
         {
             // 화면을 터치했을 때
@@ -127,7 +152,7 @@ public class MainBehaviour : MonoBehaviour
             Vector2 touchPosition = Input.GetTouch(0).position;
 
             Ray ray = Camera.main.ScreenPointToRay(new Vector3(touchPosition.x, touchPosition.y, 0.0f));
-
+            
             switch (touch.phase)
             {
                 case TouchPhase.Began:
@@ -141,27 +166,40 @@ public class MainBehaviour : MonoBehaviour
 
                 case TouchPhase.Ended:
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 열고, 포인트 적립을 서버에 요청한다.
-                    RaycastHit hitObject;
-                    Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                    if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
-                    {
-                        Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
-                    }
-                    //else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
-                    //{
-                    //    //commentCanvas.SetActive(true);
-                    //    //inAppCanvas.SetActive(false);
+                    GraphicRaycaster _mainCanvas = GameObject.FindGameObjectWithTag("InAppCanvas").GetComponent<GraphicRaycaster>();
+                    List<RaycastResult> _results = new List<RaycastResult>();
+                    PointerEventData _ped = new PointerEventData(null);
+                    _ped.position = touch.position;
+                    _mainCanvas.Raycast(_ped, _results);
 
-                    //    // 연관 광고 정보 패싱
-                    //    commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                    //    // CreateCommentView();
-                    //    // - list clear
-                    //    // - get comment list
-                    //    // - list add
-                    //    // - scroll view area calculate
-                    //}
-                    int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
-                    StartCoroutine(EarnPointCoroutine(adNumber));
+                    // UI를 터치하지 않은 경우
+                    if (_results.Count == 0)
+                    {
+                        RaycastHit hitObject;
+                        Physics.Raycast(ray, out hitObject, Mathf.Infinity);
+                        if (hitObject.collider != null)
+                        {
+                            if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
+                            {
+                                Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
+                                int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                                StartCoroutine(EarnPointCoroutine(adNumber));
+                            }
+                            else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
+                            {
+                                //commentCanvas.SetActive(true);
+                                //inAppCanvas.SetActive(false);
+
+                                // 연관 광고 정보 패싱
+                                commentViewCanvas.GetComponent<CommentCanvasBehaviour>().adNum = hitObject.collider.GetComponent<DataContainer>().AdNum;
+                                // CreateCommentView();
+                                // - list clear
+                                // - get comment list
+                                // - list add
+                                // - scroll view area calculate
+                            }
+                        }
+                    }
 
                     break;
 
@@ -561,7 +599,6 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-
     /// <summary>
     /// 나침반 값과 카메라 각의 차를 모은다.
     /// </summary>
@@ -864,7 +901,6 @@ public class MainBehaviour : MonoBehaviour
         }
     }
 
-
     public void HideCommnetView()
     {
         commentViewCanvas.SetActive(false);
@@ -879,6 +915,6 @@ public class MainBehaviour : MonoBehaviour
     }
     public void TestButton()
     {
-        _clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
+        //_clientInfo.LodingCanvas.GetComponent<LoadingCanvasBehaviour>().ShowLodingCanvas();
     }
 }

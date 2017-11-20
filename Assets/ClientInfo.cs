@@ -7,6 +7,7 @@
 public class ClientInfo : MonoBehaviour
 {
     public bool OriginalValuesAreSet = false;
+    public bool BearingDifferenceBufferFilled = false;
 
     public float CorrectedBearingOffset = 0.0f;
     public float StartingLatitude = 0.0f;
@@ -36,7 +37,6 @@ public class ClientInfo : MonoBehaviour
 
     public float[] BearingDifferenceBuffer = new float[Constants.BearingDifferenceBufferSize];
     public int BearingDifferenceIndex = 0;
-    public bool BearingDifferenceBufferFilled = false;
 
     private void Awake()
     {
