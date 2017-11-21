@@ -289,6 +289,8 @@ public class Ar3dPlane : ArObject
         Vector3 unityPosition = GpsCalulator.CoordinateDifference(ClientInfoObj.StartingLatitude, ClientInfoObj.StartingLongitude, ClientInfoObj.StartingAltitude,
             Info.GpsInfo[0], Info.GpsInfo[1], Info.GpsInfo[2]);
 
+        unityPosition.y = 0; // 고도 사용 안함.
+
         GameObj = createObject(Info.typeName, unityPosition);
         GameObj.name = Info.typeName;
         // 타입 지정
@@ -302,8 +304,6 @@ public class Ar3dPlane : ArObject
         // GPS 정보를 사용하기 위해 GPS 초기화가 안된 경우 대기.
         if (Application.platform == RuntimePlatform.Android)
             yield return new WaitUntil(() => ClientInfoObj.OriginalValuesAreSet);
-
-        unityPosition.y = 0; // 고도 사용 안함.
 
         GameObj.transform.position = unityPosition;
         GameObj.transform.eulerAngles = new Vector3(0, Info.Bearing, 0);
