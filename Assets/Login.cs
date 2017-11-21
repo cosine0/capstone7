@@ -72,6 +72,7 @@ public class Login : MonoBehaviour
             if (www.isNetworkError || www.isHttpError)
             {
                 ShowToastOnUiThread("Failed to sign in. Cannot connect to the server.");
+                _clientInfo.GetComponent<ClientInfo>().LodingCanvas.GetComponent<LoadingCanvasBehaviour>().HideLodingCanvas();
                 Debug.Log(www.error);
             }
             else
