@@ -38,11 +38,20 @@ public class Ad3dInfo
 /// <summary>
 /// 댓글 하나를 나타내는 객체.
 /// </summary>
-public class CommentInfo
+
+[System.Serializable]
+public class JsonCommentData
 {
-    public string Id = "";
-    public DateTime DateTime;
-    public string Comment = "";
+    public string userId;
+    public string comment;
+    public string dateTime;
+}
+
+[System.Serializable]
+public class JsonCommentDataArray
+{
+    public JsonCommentData[] data;
+
 }
 
 /// <summary>
@@ -118,7 +127,7 @@ public class ArPlane : ArObject
     private IEnumerator GetWebTexture()
     {
         UnityWebRequest textureWebRequest = UnityWebRequestTexture.GetTexture(Info.TextureUrl);
-        yield return textureWebRequest.Send();
+        yield return textureWebRequest.SendWebRequest();
 
         Texture texture = DownloadHandlerTexture.GetContent(textureWebRequest);
 
@@ -166,65 +175,76 @@ public class ArPlane : ArObject
         WWWForm form = new WWWForm();
         form.AddField("adNumber", _adNumber);
 
-        //using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/phppagename.php", form))
-        //{
-        //    yield return www.Send();
+        using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/recent_comment.php", form))
+        {
+            yield return www.SendWebRequest();
 
-        //    if (www.isNetworkError || www.isHttpError)
-        //    {
-        //        Debug.Log(www.error);
-        //    }
-        //    else
-        //    {
-        //        string responseJsonString = www.downloadHandler.text;
-        //        JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
+            if (www.isNetworkError || www.isHttpError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                string responseJsonString = www.downloadHandler.text;
+                JsonCommentDataArray commentList = JsonUtility.FromJson<JsonCommentDataArray>(responseJsonString);
 
-        //        // instantiate 한 object 정보
-            Debug.Log("canvas Create");
-            GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
-            // ad plane member로 할당
-            arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
-            // ad plane 인근 위치로 이동 및 회전
-            yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
-            CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
-            CommentCanvas.GameObj.transform.eulerAngles = new Vector3(0.0f, this.Info.Bearing + 90.0f, 0.0f);
-            CommentCanvas.GameObj.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+                // instantiate 한 object 정보
+                Debug.Log("canvas Create");
+                GameObject canvasObject = MonoBehaviour.Instantiate((Resources.Load("Prefabs/CommentCanvas") as GameObject)) as GameObject;
+                // ad plane member로 할당
+                arPlaneObject.CommentCanvas = new ArCommentCanvas(canvasObject);
+                // ad plane 인근 위치로 이동 및 회전
+                yield return new WaitUntil(() => (arPlaneObject.GameObj != null));
+                CommentCanvas.GameObj.transform.position = this.GameObj.transform.position;
+                CommentCanvas.GameObj.transform.eulerAngles = new Vector3(0.0f, this.Info.Bearing, 0.0f);
+                //CommentCanvas.GameObj.transform.localEulerAngles = new Vector3(0.0f, this.Info.Bearing, 0.0f);
+                CommentCanvas.GameObj.transform.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+                // commentCanvas move and rotate
+                yield return new WaitUntil(() => (CommentCanvas != null && this.GameObj != null));
 
-            // commentCanvas move and rotate
-             yield return new WaitUntil(() => (CommentCanvas != null && this.GameObj != null));
+                // ad plane의 scale 이 1보다 작을 경우 commentcanvas scale링 필요할 것으로 보임
 
-            // ad plane의 scale 이 1보다 작을 경우 commentcanvas scale링 필요할 것으로 보임
+                // local space 기준 기동
+                Vector3 movement = new Vector3((this.GameObj.transform.localScale.x * 5.0f + (CommentCanvas.GameObj.transform.localScale.x * 500)) + 1,
+                    (this.GameObj.transform.localScale.y - (CommentCanvas.GameObj.transform.localScale.y * 100)) * 5.0f, 0.0f);
 
-            // local space 기준 기동
-            Vector3 movement = new Vector3((this.GameObj.transform.localScale.x * 5.0f + (CommentCanvas.GameObj.transform.localScale.x * 500)) + 1,
-                (this.GameObj.transform.localScale.y - (CommentCanvas.GameObj.transform.localScale.y * 100)) * 5.0f, 0.0f);
+                CommentCanvas.GameObj.transform.Translate(movement, Space.Self);
 
-            CommentCanvas.GameObj.transform.Translate(movement, Space.Self);
+                // object multiplier = 5(local width, height 10/2)
+                // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
 
-            // object multiplier = 5(local width, height 10/2)
-            // commentCanvas 1000 -> scaling 0.01 -> local width, height 10
+                //test set
+                //GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+                //commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false);
+                //commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "id123";
+                //commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = "Hello";
 
-       
-
-        //test set
-            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
-            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false);
-            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "id123";
-            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = "Hello";
-
-        //        for (int i = 0; i < commentList.data.Length; i++)
-        //        {
-        //            // comment 정보 채우기
-        //            // comment panel instantiate
-        //            GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
-        //            // 부모 자식 관계 생성
-        //            commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false); // parent properties inheritance false
-        //            // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
-        //            commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
-        //            //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
-        //            commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
-        //        }
-        //}
+                if (commentList.data.Length == 0)
+                {
+                    GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+                    // 부모 자식 관계 생성
+                    commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false); // parent properties inheritance false
+                                                                                                             // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
+                    commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "No comment yet";
+                    //commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = "";
+                }
+                else
+                {
+                    for (int i = 0; i < commentList.data.Length; i++)
+                    {
+                        // comment 정보 채우기
+                        // comment panel instantiate
+                        GameObject commentPanel = MonoBehaviour.Instantiate(Resources.Load("Prefabs/CommentPanel") as GameObject) as GameObject;
+                        // 부모 자식 관계 생성
+                        commentPanel.transform.SetParent(canvasObject.transform.GetChild(0).GetChild(1), false); // parent properties inheritance false
+                                                                                                                 // comment panel object transform에서 Text Component Child 2개(id, comment)를 찾아 텍스트 수정.
+                        commentPanel.transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].userId;
+                        //++++++++++++++++ 텍스트 길이에 따른 오버플로우 처리 필요++++++++++++++++++++
+                        commentPanel.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>().text = commentList.data[i].comment;
+                    }
+                }
+            }
+        }
     }
 
     public override void Update()
