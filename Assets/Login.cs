@@ -67,7 +67,7 @@ public class Login : MonoBehaviour
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_session.php", loginForm))
         {
             // POST 전송
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
             {
@@ -99,7 +99,7 @@ public class Login : MonoBehaviour
                     Debug.Log("succeeded to sign in");
                     PwInputField.text = "";
                     _clientInfo.GetComponent<ClientInfo>().OriginalValuesAreSet = false;
-                    SceneManager.LoadScene("loadscene");
+                    SceneManager.LoadScene("InApp");
                 }
 
             }
@@ -144,7 +144,7 @@ public class Login : MonoBehaviour
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/createaccount.php", signUpForm))
         {
             // POST 전송
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
             {

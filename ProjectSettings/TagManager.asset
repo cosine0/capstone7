@@ -4,20 +4,14 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - debugInfo
-  - Loadingscenemanager
+  - LoadingCanvas
   - UserInfo
   - ClientInfo
-  - session_gameobject
   - OptionUserId
-  - OptionUserPoint
-  - OptionVersionInfo
-  - OptionRadioButton
-  - OptionInsideOn
+  - debugInfo
   - OptionInsideOff
-  - CommentCanvas
+  - OptionInsideOn
   - InAppCanvas
-  - LoadingCanvas
   layers:
   - Default
   - TransparentFX

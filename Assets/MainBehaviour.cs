@@ -44,21 +44,6 @@ public class JsonPointData
 }
 
 [System.Serializable]
-public class JsonCommentData
-{
-    public string userId;
-    public string comment;
-    public string dateTime;
-}
-
-[System.Serializable]
-public class JsonCommentDataArray
-{
-    public JsonCommentData[] data;
-
-}
-
-[System.Serializable]
 public class JsonPlaneDataArray
 {
     public JsonPlaneData[] data;
@@ -147,11 +132,7 @@ public class MainBehaviour : MonoBehaviour
         
         if (Input.touchCount > 0)
         {
-            // 화면을 터치했을 때
             Touch touch = Input.GetTouch(0);
-            Vector2 touchPosition = Input.GetTouch(0).position;
-
-            Ray ray = Camera.main.ScreenPointToRay(new Vector3(touchPosition.x, touchPosition.y, 0.0f));
             
             switch (touch.phase)
             {
@@ -165,7 +146,14 @@ public class MainBehaviour : MonoBehaviour
                     break;
 
                 case TouchPhase.Ended:
+                    Debug.Log("Touch Ended!");
                     // 터치를 뗀 경우 - 터치한 위치의 광선에 닿는 물체의 BannerUrl을 브라우저에서 열고, 포인트 적립을 서버에 요청한다.
+
+                    Vector2 touchPosition = Input.GetTouch(0).position;
+                    Ray ray = Camera.main.ScreenPointToRay(new Vector3(touchPosition.x, touchPosition.y, 0.0f));
+                    
+                    RaycastHit hitObject;
+
                     GraphicRaycaster _mainCanvas = GameObject.FindGameObjectWithTag("InAppCanvas").GetComponent<GraphicRaycaster>();
                     List<RaycastResult> _results = new List<RaycastResult>();
                     PointerEventData _ped = new PointerEventData(null);
@@ -175,18 +163,19 @@ public class MainBehaviour : MonoBehaviour
                     // UI를 터치하지 않은 경우
                     if (_results.Count == 0)
                     {
-                        RaycastHit hitObject;
-                        Physics.Raycast(ray, out hitObject, Mathf.Infinity);
-                        if (hitObject.collider != null)
+
+                        if (Physics.Raycast(ray, out hitObject, Mathf.Infinity))
                         {
                             if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.AdPlane)
                             {
+                                Debug.Log("ArPlane Touch!");
                                 Application.OpenURL(hitObject.collider.GetComponent<DataContainer>().BannerUrl);
                                 int adNumber = hitObject.collider.GetComponent<DataContainer>().AdNum;
                                 StartCoroutine(EarnPointCoroutine(adNumber));
                             }
                             else if (hitObject.collider.GetComponent<DataContainer>().ObjectType == ArObjectType.ArComment)
                             {
+                                Debug.Log("CommentCanvas Touch!");
                                 //commentCanvas.SetActive(true);
                                 //inAppCanvas.SetActive(false);
 
@@ -385,10 +374,16 @@ public class MainBehaviour : MonoBehaviour
                 }
 
 
-                // 테스트용 GPS
-                //latitude = "37.450571";
-                //longitude = "126.656903";
+                //테스트용 GPS 
+                //latitude = "37.450700";
+                //longitude = "126.657100";
                 //altitude = "53.000000";
+                //_clientInfo.StartingLatitude = 37.450700f;
+                //_clientInfo.StartingLongitude = 126.657100f;
+                //_clientInfo.StartingAltitude = 53.000000f;
+                //_clientInfo.CurrentLatitude = 37.450700f;
+                //_clientInfo.CurrentLongitude = 126.657100f;
+                //_clientInfo.CurrentAltitude = 53.000000f;
 
                 WWWForm form = new WWWForm();
                 form.AddField("latitude", latitude);
@@ -401,7 +396,7 @@ public class MainBehaviour : MonoBehaviour
                 using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/getGPS_distance.php", form))
                 {
                     // POST 전송
-                    yield return www.Send();
+                    yield return www.SendWebRequest();
 
                     if (www.isNetworkError || www.isHttpError)
                     {
@@ -531,7 +526,7 @@ public class MainBehaviour : MonoBehaviour
                 using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/get3D_distance.php", form))
                 {
                     // POST 전송
-                    yield return www.Send();
+                    yield return www.SendWebRequest();
 
                     if (www.isNetworkError || www.isHttpError)
                     {
@@ -661,12 +656,18 @@ public class MainBehaviour : MonoBehaviour
             averageOfDifferences %= 360f;
 
 
-            foreach (var arObject in _arObjects.Values)
-            {
-                // 모든 물체를 생성시 카메라 포지션 기준 회전
-                arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
-                    , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
-            }
+            //foreach (var arObject in _arObjects.Values)
+            //{
+            //    // 모든 물체를 생성시 카메라 포지션 기준 회전
+            //    arObject.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
+            //        , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
+
+            //    if ((arObject.ObjectType == ArObjectType.AdPlane) && (((ArPlane)arObject).CommentCanvas != null))
+            //    {
+            //        ((ArPlane)arObject).CommentCanvas.GameObj.transform.RotateAround(arObject.GameObj.GetComponent<DataContainer>().CreatedCameraPosition
+            //        , new Vector3(0.0f, 1.0f, 0.0f), averageOfDifferences - _clientInfo.CorrectedBearingOffset);
+            //    }
+            //}
             // Bearing Offset 값을 새로 계산된 값으로 반영
             _clientInfo.CorrectedBearingOffset = averageOfDifferences;
 
@@ -683,7 +684,7 @@ public class MainBehaviour : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/check_log.php", checkLogForm))
         {
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
                 Debug.Log(www.error);
@@ -699,7 +700,7 @@ public class MainBehaviour : MonoBehaviour
 
                     using (UnityWebRequest www2 = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/adinfo.php", adInfoForm))
                     {
-                        yield return www2.Send();
+                        yield return www2.SendWebRequest();
 
                         if (www2.isNetworkError || www2.isHttpError)
                             Debug.Log(www2.error);
@@ -717,7 +718,7 @@ public class MainBehaviour : MonoBehaviour
 
                             using (UnityWebRequest www3 = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/earn_point.php", pointForm))
                             {
-                                yield return www3.Send();
+                                yield return www3.SendWebRequest();
 
                                 if (www3.isNetworkError || www3.isHttpError)
                                     Debug.Log(www3.error);
@@ -780,7 +781,7 @@ public class MainBehaviour : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/show_point.php", checkPointForm))
         {
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
                 Debug.Log(www.error);
@@ -888,7 +889,7 @@ public class MainBehaviour : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/add_3d_Object.php", form))
         {
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
             {

@@ -38,7 +38,7 @@ public class LoadingSceneManager : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/login_info.php", loginInfoForm))
         {
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
             {

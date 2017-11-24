@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class viewCommentBehaviour : MonoBehaviour {
+public class ViewCommentBehaviour : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -14,9 +14,4 @@ public class viewCommentBehaviour : MonoBehaviour {
 	void Update () {
 		
 	}
-
-    public void ToOptionScene()
-    {
-        SceneManager.LoadScene("Option");
-    }
 }

@@ -80,7 +80,7 @@ public class OptionBehaviour : MonoBehaviour
         using (UnityWebRequest www = UnityWebRequest.Get("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/logout_session.php"))
         {
             // Get 전송
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
             {
@@ -137,7 +137,7 @@ public class OptionBehaviour : MonoBehaviour
 
         using (UnityWebRequest www = UnityWebRequest.Post("http://ec2-13-125-7-2.ap-northeast-2.compute.amazonaws.com:31337/capstone/show_point.php", checkPointForm))
         {
-            yield return www.Send();
+            yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
                 Debug.Log(www.error);
@@ -150,7 +150,7 @@ public class OptionBehaviour : MonoBehaviour
             }
         }
     }
-
+    
     public void clickViewBtn()
     {
         SceneManager.LoadScene("viewComment");
